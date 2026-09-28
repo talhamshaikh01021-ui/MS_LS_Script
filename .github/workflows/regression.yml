@@ -1,0 +1,69 @@
+name: MouthShut Regression Automation & Live Status Report
+
+on:
+  schedule:
+    # Run daily at 04:00 UTC (09:30 AM IST)
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      desktop_url:
+        description: 'Desktop Base URL'
+        required: false
+        default: 'https://beta.mouthshut.com'
+      mobile_url:
+        description: 'Mobile Base URL'
+        required: false
+        default: 'https://mbeta.mouthshut.com'
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  regression-test:
+    name: Execute Desktop & Mobile Master Regression Suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.6.0
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright Chromium with OS Dependencies
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Desktop and Mobile Regression Suites (Simultaneous)
+        env:
+          CI: true
+          DESKTOP_BASE_URL: ${{ github.event.inputs.desktop_url || 'https://beta.mouthshut.com' }}
+          MOBILE_BASE_URL: ${{ github.event.inputs.mobile_url || 'https://mbeta.mouthshut.com' }}
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Test Results & Traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14

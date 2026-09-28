@@ -1,0 +1,12 @@
+{
+  "reviewTitle": "//h1 | //div[contains(@class,'review-title')] | //div[contains(@class,'prod-details')]//h2",
+  "reviewBody": "//div[contains(@class,'review-text')] | //div[contains(@id,'reviewContent')]",
+  "reviewStars": "//span[contains(@class,'icon-star-rating filled-star')]",
+  "commentInput": "//textarea[@id='txtcommentss'] | //textarea[contains(@placeholder,'comment')]",
+  "commentSubmitButton": "//button[@id='btnsubmitss'] | //button[contains(text(),'Submit')]",
+  "usefulRatingButton": "//span[contains(@class,'icon-star-rating')] | //div[contains(@class,'prod-tap-star')]",
+  "selfRatingWarning": "//*[contains(text(),'cannot rate your own review') or contains(text(),'cant rate your review')]",
+  "squashRarLink": "//a[contains(@href,'squash-reviews') or contains(text(),'Squash')]",
+  "mobileRarRatingIcon": "//a[contains(@href,'/review/')]//span[contains(@class,'star')] | //div[contains(@class,'reviews-list')]//a",
+  "mobileRarCommentIcon": "//a[contains(@href,'/review/')]//span[contains(@class,'comment')] | //a[contains(@href,'/review/')]"
+}

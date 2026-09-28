@@ -1,0 +1,5 @@
+{
+  "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch'] | //input[contains(@placeholder,'Search')]",
+  "amazonSearchResult": "//a[contains(@href,'amazon') and (contains(@href,'reviews') or contains(@href,'product'))] | //a[contains(.,'Amazon')]",
+  "reviewLinkOnRar": "//a[contains(@id,'lnkTitle')] | //a[contains(@href,'/review/') and not(contains(@href,'writereview'))]"
+}

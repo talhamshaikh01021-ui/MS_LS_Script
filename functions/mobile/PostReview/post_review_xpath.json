@@ -1,0 +1,13 @@
+{
+  "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch1'] | //input[contains(@placeholder,'Search')]",
+  "squashProductLink": "//a[contains(@href,'squash-reviews') or contains(@href,'squash')] | //div[contains(.,'Squash')]//a",
+  "writeReviewButton": "//a[@id='dvwritereview'] | //a[contains(text(),'WRITE A REVIEW')] | //a[contains(@class,'wr-btn')]",
+  "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
+  "star2Rating": "//span[contains(@class,'icon-star-rating') and contains(@onclick,\"rate('2')\")] | //div[contains(@class,'prod-tap-star')]//span[2]",
+  "reviewTitleInput": "//input[@id='contentBody_txtTitle'] | //input[@id='txtTitle']",
+  "reviewContentTextarea": "//textarea[@id='contentBody_myEditor'] | //textarea[contains(@id,'myEditor')]",
+  "fileInput1": "//input[@id='contentBody_filePhoto']",
+  "fileInput2": "//input[@id='contentBody_filePhoto2']",
+  "videoEmbedInput": "//input[@id='txtEmbed']",
+  "submitReviewButton": "//input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@type='submit' and contains(@value,'Submit')]"
+}

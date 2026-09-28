@@ -1,0 +1,17 @@
+{
+  "reviewTitle": "//h1 | //div[contains(@class,'review-title')] | //h2[contains(@class,'title')]",
+  "reviewBody": "//div[contains(@class,'review-text')] | //div[contains(@id,'reviewContent')] | //p[contains(@class,'review-body')]",
+  "reviewStars": "//span[contains(@class,'icon-rating rated-star')]",
+  "reviewPhotos": "//div[contains(@class,'review-photos')]//img | //img[contains(@class,'review-img')]",
+  "reviewVideo": "//iframe[contains(@src,'youtube') or contains(@src,'youtu.be')] | //div[contains(@class,'video-holder')]",
+  "commentInput": "//textarea[@id='txtComment']",
+  "commentSubmitButton": "//button[@id='btnSubmit'] | //button[contains(text(),'Submit')]",
+  "usefulRatingButton": "//span[@id='btnAjxU'] | //span[contains(@class,'icon-useful')] | //div[contains(@class,'your-rating-star')][1]",
+  "selfRatingErrorText": "//span[@id='ratingText' and contains(.,'cannot rate your own review')] | //*[contains(text(),'cannot rate your own review') or contains(text(),'cant rate your review')]",
+  "squashRarBreadcrumb": "//a[contains(@href,'squash-reviews') and (contains(text(),'Squash') or contains(text(),'reviews'))] | //ol[contains(@class,'breadcrumb')]//a[contains(.,'Squash')]",
+  "rarReviewItem": "//div[contains(@id,'rptreviews')] | //a[contains(@id,'lnkTitle')]",
+  "rarOtherReviewUseful": "//span[contains(@id,'_spnu')][2] | //span[contains(@id,'_spnu')][1]",
+  "rarOtherReviewCommentIcon": "//span[contains(@id,'_commentsIcon')][2] | //span[contains(@id,'_commentsIcon')][1]",
+  "rarOtherReviewCommentBox": "//textarea[contains(@id,'_txtcomment')]",
+  "rarOtherReviewCommentSubmit": "//button[contains(@id,'_btnaddcomment')]"
+}

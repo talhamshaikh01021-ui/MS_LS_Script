@@ -1,0 +1,7 @@
+{
+  "mobileMenuButton": "//a[contains(@class,'icon-more-navigation')] | //a[contains(text(),'CATEGORIES')]",
+  "realEstateCategoryLink": "//a[contains(@href,'realestate') or contains(.,'Real Estate')]",
+  "buildersDevelopersLink": "//a[contains(@href,'builders-and-developers') or contains(.,'Builders')]",
+  "cityFilterSelect": "//select[@id='selCity'] | //select[contains(@name,'selCity')]",
+  "sortFilterSelect": "//select[@id='ddlsort'] | //select[contains(@name,'ddlsort')]"
+}

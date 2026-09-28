@@ -1,0 +1,21 @@
+{
+  "mobileSignInLink": "//a[@id='hypSign'] | //a[@id='signin'] | //a[contains(text(),'Sign In') or contains(text(),'Sign in')]",
+  "mobileSignUpTab": "//a[@id='SignUp'] | //div[contains(@class,'col-m-12')]//a[contains(text(),'Sign Up')]",
+  "nameInput": "//input[@id='txtname']",
+  "emailInput": "//input[@id='txtEmailId']",
+  "passwordInput": "//input[@id='txtPassword1']",
+  "msidInput": "//input[@id='txtMSID']",
+  "genderToggle": "//input[@id='mode-toggle']",
+  "captchaImage": "//img[@id='CapImg']",
+  "captchaInput": "//input[@id='txtCaptcha']",
+  "signUpSubmitButton": "//a[contains(@class,'sign-up-button')] | //a[@onclick='clicksignup();']",
+  "errorContainer": "//div[@id='divErr2']",
+  "verifyEmailOtpButton": "//a[contains(text(),'Verify')] | //button[contains(text(),'Verify')] | //div[contains(@class,'otp')]//a | //button[contains(text(),'Send OTP')]",
+  "otpInput1": "//input[@id='txtotp1'] | //input[@id='txtOTP1']",
+  "otpInput2": "//input[@id='txtotp2'] | //input[@id='txtOTP2']",
+  "otpInput3": "//input[@id='txtotp3'] | //input[@id='txtOTP3']",
+  "otpInput4": "//input[@id='txtotp4'] | //input[@id='txtOTP4']",
+  "otpSubmitButton": "//button[contains(text(),'SUBMIT')] | //a[contains(@class,'otp-contin-button')] | //button[contains(text(),'Submit')]",
+  "resendOtpLink": "//a[contains(text(),'Resend OTP')]",
+  "homeLogoLink": "//a[@href='/'] | //a[contains(@class,'logo')]"
+}

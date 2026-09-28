@@ -1,0 +1,20 @@
+{
+  "signInButton": "//button[@id='sign-in'] | //a[contains(text(),'Sign In')]",
+  "nameInput": "//input[@id='txtName']",
+  "emailInput": "//input[@id='txtEmail']",
+  "passwordInput": "//input[@id='txtPassword']",
+  "msidInput": "//input[@id='txtMsId']",
+  "genderToggle": "//input[@id='mode-toggle']",
+  "captchaImage": "//img[@id='CapImg']",
+  "captchaInput": "//input[@id='txtCaptcha']",
+  "signUpSubmitButton": "//button[@id='btnAjax_reg']",
+  "errorContainer": "//div[contains(@class,'error')] | //p[contains(@class,'warning')]",
+  "otpInput1": "//input[@id='txtOTP12FAA'] | //input[@id='txtotp1'] | //input[@id='txtOTP1']",
+  "otpInput2": "//input[@id='txtOTP22FAA'] | //input[@id='txtotp2'] | //input[@id='txtOTP2']",
+  "otpInput3": "//input[@id='txtOTP32FAA'] | //input[@id='txtotp3'] | //input[@id='txtOTP3']",
+  "otpInput4": "//input[@id='txtOTP42FAA'] | //input[@id='txtotp4'] | //input[@id='txtOTP4']",
+  "otpSubmitButton": "//button[@id='btnsub'] | //button[contains(text(),'SUBMIT')]",
+  "resendOtpLink": "//a[contains(text(),'Resend OTP')]",
+  "welcomeBanner": "//h1[contains(text(),'Welcome')] | //div[contains(@class,'welcome')] | //span[contains(text(),'Welcome')]",
+  "homeLogoLink": "//a[contains(@class,'logo')] | //a[@href='/']"
+}

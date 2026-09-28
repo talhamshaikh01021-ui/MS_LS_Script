@@ -1,0 +1,12 @@
+{
+  "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch1'] | //input[contains(@placeholder,'Search')]",
+  "ayurProductLink": "//a[contains(@href,'ayur-shampoo-reviews') or contains(@href,'ayur-shampoo')]",
+  "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
+  "star4Rating": "//span[contains(@class,'icon-star-rating') and contains(@onclick,\"rate('4')\")] | //div[contains(@class,'prod-tap-star')]//span[4]",
+  "reviewTitleInput": "//input[@id='contentBody_txtTitle'] | //input[@id='txtTitle']",
+  "reviewContentTextarea": "//textarea[@id='contentBody_myEditor'] | //textarea[contains(@id,'myEditor')]",
+  "fileInput1": "//input[@id='contentBody_filePhoto']",
+  "fileInput2": "//input[@id='contentBody_filePhoto2']",
+  "videoEmbedInput": "//input[@id='txtEmbed']",
+  "submitReviewButton": "//input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@type='submit' and contains(@value,'Submit')]"
+}

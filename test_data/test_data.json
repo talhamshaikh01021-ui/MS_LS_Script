@@ -1,0 +1,47 @@
+{
+  "test_data": {
+    "desktop_test_data": {
+      "email_id": "talhamshaikh0102@gmail.com",
+      "google_app_password_name": "mouhshut_live_status_playwright",
+      "google_app_password": "dqqv qfqo tjxz eqbi",
+      "MSID": "talhamshaikh0102",
+      "name": "talhamshaikh0102",
+      "password": "Welcome@123"
+    },
+    "mobile_test_data": {
+      "email_id": "talhamshaikh01021@gmail.com",
+      "google_app_password_name": "mouhshut_live_status_playwright",
+      "google_app_password": "eqkt gses xmup rtmy",
+      "MSID": "talhamshaikh01021",
+      "name": "talhamshaikh01021",
+      "password": "Welcome@123"
+    },
+    "urls": {
+      "desktop_base_url": "https://beta.mouthshut.com",
+      "mobile_base_url": "https://mbeta.mouthshut.com"
+    },
+    "review_data": {
+      "video_url": "https://youtu.be/a3ICNMQW7Ok?si=k1g1gsFKI-rFTry9",
+      "review_image_path": "test_data/review_image/images.jpg",
+      "squash": {
+        "search_term": "squash",
+        "title": "Squash Experience and Quality Review",
+        "content": "Squash is an energetic and intense sport providing high cardiovascular exercise and endurance building. The court game requires great stamina, quick reflexes, and rapid footwork. Overall equipment quality and durability were satisfactory during gameplay.",
+        "rating": 2
+      },
+      "ayur": {
+        "search_term": "ayur shampoo",
+        "title": "Ayur Herbal Shampoo Honest Evaluation",
+        "content": "Ayur Herbal shampoo is formulated with amla, shikakai, and reetha extracts. It leaves hair conditioned, manageable, and gently cleansed without excessive dryness. Good natural fragrance and value for daily hair care regimen.",
+        "rating": 4
+      },
+      "amazon": {
+        "search_term": "amazon"
+      }
+    },
+    "report_recipients": [
+      "talhamshaikh0102@gmail.com",
+      "talhamshaikh01021@gmail.com"
+    ]
+  }
+}

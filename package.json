@@ -1,0 +1,34 @@
+{
+  "name": "mouthshut_livestatus_playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:desktop": "playwright test --project=\"Desktop Master Suite\"",
+    "test:mobile": "playwright test --project=\"Mobile Master Suite\"",
+    "report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.6.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.6.0",
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3"
+  },
+  "dependencies": {
+    "imap-simple": "^5.1.0",
+    "mailparser": "^3.9.28",
+    "nodemailer": "^10.0.11",
+    "tesseract.js": "^7.0.0"
+  }
+}
