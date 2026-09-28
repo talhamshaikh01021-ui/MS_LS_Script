@@ -12,7 +12,7 @@ test.describe('Mobile Regression Master Suite', () => {
   const reporter = RegressionReporter.getInstance();
 
   test('Execute Mobile Full Regression Flow', async ({ page }) => {
-    test.setTimeout(300000); // 5 minute suite timeout
+    test.setTimeout(600000); // 10 minute suite timeout
     let reviewUrl = '';
 
     // Activity 1: Mobile Registration

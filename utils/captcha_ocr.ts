@@ -48,7 +48,7 @@ export async function solveAndFillCaptcha(
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     console.log(`[CaptchaOCR] Solving captcha attempt ${attempt}/${maxAttempts}...`);
 
-    const imgLocator = page.locator(captchaImgSelector);
+    const imgLocator = page.locator(captchaImgSelector).first();
     await imgLocator.waitFor({ state: 'visible', timeout: 8000 });
 
     // Ensure image is fully loaded
@@ -71,18 +71,18 @@ export async function solveAndFillCaptcha(
     // Clean text to 4 chars if longer, or pad if close
     const finalCaptcha = recognizedText.length >= 4 ? recognizedText.substring(0, 4) : recognizedText;
 
-    const inputLocator = page.locator(captchaInputSelector);
+    const inputLocator = page.locator(captchaInputSelector).first();
     await inputLocator.fill('');
     await inputLocator.fill(finalCaptcha);
     await page.waitForTimeout(500);
 
     // Click submit button
-    const submitBtn = page.locator(submitBtnSelector);
+    const submitBtn = page.locator(submitBtnSelector).first();
     await submitBtn.click();
     await page.waitForTimeout(2000);
 
     // Check if error message appeared for captcha
-    const errorEl = page.locator(errorSelector);
+    const errorEl = page.locator(errorSelector).first();
     const isErrorVisible = await errorEl.isVisible().catch(() => false);
     const errorText = isErrorVisible ? (await errorEl.innerText().catch(() => '')) : '';
 

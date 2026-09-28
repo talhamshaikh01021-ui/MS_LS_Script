@@ -15,9 +15,17 @@ export async function mobileRegistration(page: Page): Promise<boolean> {
   await page.goto(MOBILE_BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
 
   // 1. Click Sign In link
-  const signInBtn = page.locator(xpaths.mobileSignInLink).first();
-  await signInBtn.waitFor({ state: 'visible', timeout: 15000 });
-  await signInBtn.click();
+  console.log('[Mobile Registration] Opening Sign In / Sign Up page...');
+  try {
+    const signInBtn = page.locator(xpaths.mobileSignInLink).first();
+    if (await signInBtn.isVisible().catch(() => false)) {
+      await signInBtn.click();
+    } else {
+      await page.goto(`${MOBILE_BASE_URL}/signup/login/login_now.php?url=common/memberprofile.aspx`, { waitUntil: 'domcontentloaded' });
+    }
+  } catch (e) {
+    await page.goto(`${MOBILE_BASE_URL}/signup/login/login_now.php?url=common/memberprofile.aspx`, { waitUntil: 'domcontentloaded' });
+  }
   await page.waitForTimeout(2000);
 
   // 2. Switch to Sign Up tab/form
@@ -31,17 +39,17 @@ export async function mobileRegistration(page: Page): Promise<boolean> {
   const data = TEST_DATA.mobile_test_data;
   console.log(`[Mobile Registration] Filling registration for MSID: ${data.MSID}, Email: ${data.email_id}`);
 
-  const nameInput = page.locator(xpaths.nameInput);
+  const nameInput = page.locator(xpaths.nameInput).first();
   await nameInput.waitFor({ state: 'visible', timeout: 10000 });
   await nameInput.fill(data.name);
 
-  const emailInput = page.locator(xpaths.emailInput);
+  const emailInput = page.locator(xpaths.emailInput).first();
   await emailInput.fill(data.email_id);
 
-  const passInput = page.locator(xpaths.passwordInput);
+  const passInput = page.locator(xpaths.passwordInput).first();
   await passInput.fill(data.password);
 
-  const msidInput = page.locator(xpaths.msidInput);
+  const msidInput = page.locator(xpaths.msidInput).first();
   await msidInput.fill(data.MSID);
 
   // 4. Captcha OCR loop

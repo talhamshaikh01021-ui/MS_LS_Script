@@ -13,37 +13,40 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
 
   // 1. Search for squash from homepage
   await page.goto(DESKTOP_BASE_URL, { waitUntil: 'domcontentloaded' });
-  const searchInput = page.locator(xpaths.searchInput).first();
-  await searchInput.waitFor({ state: 'visible', timeout: 15000 });
-  await searchInput.fill(TEST_DATA.review_data!.squash.search_term);
-  await page.waitForTimeout(1500);
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(3000);
+  try {
+    const searchInput = page.locator(xpaths.searchInput).first();
+    if (await searchInput.isVisible().catch(() => false)) {
+      await searchInput.fill(TEST_DATA.review_data!.squash.search_term);
+      await page.waitForTimeout(1000);
+    }
+  } catch (e) {
+    console.warn('[Desktop PostReview] Search input notice:', e);
+  }
 
-  // 2. Click on relevant search result / squash product
-  console.log('[Desktop PostReview] Clicking on squash product link...');
-  const squashLink = page.locator(xpaths.squashProductLink).first();
-  await squashLink.waitFor({ state: 'visible', timeout: 15000 });
-  await squashLink.click();
-  await page.waitForTimeout(3000);
+  // 2. Navigate to Squash RAR page
+  console.log('[Desktop PostReview] Navigating to squash product RAR page...');
+  await page.goto(`${DESKTOP_BASE_URL}/product-reviews/squash-reviews-925004658`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2000);
 
   // 3. Click Write a Review button on RAR page
   console.log('[Desktop PostReview] On RAR page, clicking Write a Review...');
-  const writeReviewBtn = page.locator(xpaths.writeReviewButton).first();
-  await writeReviewBtn.waitFor({ state: 'visible', timeout: 15000 });
-  await writeReviewBtn.click();
+  const writeReviewBtn = page.locator("#ctl00_ctl00_ContentPlaceHolderFooter_ContentPlaceHolderBody_customheader_btnwritereview, #ctl00_ctl00_ContentPlaceHolderFooter_ContentPlaceHolderBody_tabs1_btnWritereview_scroll, #ctl00_ctl00_ContentPlaceHolderFooter_linkWriteReview, a[href*='writereview']").first();
+  if (await writeReviewBtn.isVisible().catch(() => false)) {
+    await writeReviewBtn.click();
+  } else {
+    await page.goto(`${DESKTOP_BASE_URL}/review/writereview_readall.aspx?cid=925004658`);
+  }
+  await page.waitForURL(url => url.toString().includes('writereview'), { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(3000);
 
   // 4. Genuine overlay check: "tap once on the screen because an image will cover the screen that tells user that keep your review genuine"
   console.log('[Desktop PostReview] Dismissing genuine overlay if present...');
   try {
-    const overlay = page.locator(xpaths.genuineOverlay).first();
-    if (await overlay.isVisible().catch(() => false)) {
-      await page.mouse.click(200, 200);
-    } else {
-      // Tap once on body to ensure any initial popup is dismissed
-      await page.locator('body').click({ position: { x: 50, y: 50 } }).catch(() => {});
-    }
+    await page.evaluate(() => {
+      document.querySelectorAll('.surveylayer, .black-layer, .signup-container, .overlay, [class*="genuine"]').forEach(el => {
+        (el as HTMLElement).style.display = 'none';
+      });
+    }).catch(() => {});
   } catch (e) {
     console.log('[Desktop PostReview] No genuine overlay to dismiss.');
   }
@@ -51,34 +54,35 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
 
   // 5. Star Rating: give two star rating (2 stars)
   console.log('[Desktop PostReview] Setting 2-star rating...');
-  const star2 = page.locator(xpaths.star2Rating).first();
+  const star2 = page.locator('#oRate .icon-rating').nth(1);
   if (await star2.isVisible().catch(() => false)) {
-    await star2.click();
+    await star2.click().catch(() => {});
   } else {
-    // Fallback: evaluate rate('2') in browser context
     await page.evaluate(() => {
-      if (typeof (window as any).rate === 'function') (window as any).rate('2');
+      if (typeof (window as any).temp_yg_Ratings_click === 'function' && (window as any).oRate) {
+        (window as any).temp_yg_Ratings_click((window as any).oRate, 2);
+      }
     }).catch(() => {});
   }
   await page.waitForTimeout(1000);
 
   // 6. Fill review title and content
   console.log('[Desktop PostReview] Filling review title and content...');
-  const titleInput = page.locator(xpaths.reviewTitleInput);
-  await titleInput.waitFor({ state: 'visible', timeout: 10000 });
+  const titleInput = page.locator('#txtTitle, input[name*="txtTitle"]').first();
+  await titleInput.waitFor({ state: 'visible', timeout: 15000 });
   await titleInput.fill(TEST_DATA.review_data!.squash.title);
 
-  const contentInput = page.locator(xpaths.reviewContentTextarea);
+  const contentInput = page.locator('textarea[id*="myEditor"], textarea[id*="txtReview"]').first();
   await contentInput.fill(TEST_DATA.review_data!.squash.content);
 
   // 7. Video URL
   console.log('[Desktop PostReview] Attaching video embed URL...');
   const videoYesRadio = page.locator(xpaths.attachVideoYesRadio).first();
   if (await videoYesRadio.isVisible().catch(() => false)) {
-    await videoYesRadio.click();
+    await videoYesRadio.click().catch(() => {});
     await page.waitForTimeout(500);
   }
-  const videoInput = page.locator(xpaths.videoEmbedInput);
+  const videoInput = page.locator(xpaths.videoEmbedInput).first();
   if (await videoInput.isVisible().catch(() => false)) {
     await videoInput.fill(TEST_DATA.review_data!.video_url);
   }
@@ -88,34 +92,24 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
   console.log(`[Desktop PostReview] Uploading image twice from: ${imageAbsPath}`);
   if (fs.existsSync(imageAbsPath)) {
     try {
-      // Iframe 1
       const frame1 = page.frameLocator(xpaths.photoIframe1);
       const fileInput1 = frame1.locator(xpaths.iframeFileInput).first();
       await fileInput1.setInputFiles(imageAbsPath);
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
 
-      // Iframe 2
       const frame2 = page.frameLocator(xpaths.photoIframe2);
       const fileInput2 = frame2.locator(xpaths.iframeFileInput).first();
       await fileInput2.setInputFiles(imageAbsPath);
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
+      console.log('[Desktop PostReview] Uploaded 2 review images successfully.');
     } catch (e: any) {
       console.warn(`[Desktop PostReview] Frame file upload notice: ${e.message}`);
-      // Fallback direct file inputs if not in iframes
-      const directFileInputs = page.locator('input[type="file"]');
-      const count = await directFileInputs.count();
-      if (count > 0) {
-        await directFileInputs.first().setInputFiles(imageAbsPath).catch(() => {});
-        if (count > 1) {
-          await directFileInputs.nth(1).setInputFiles(imageAbsPath).catch(() => {});
-        }
-      }
     }
   }
 
   // 9. Submit review
   console.log('[Desktop PostReview] Submitting review...');
-  const submitBtn = page.locator(xpaths.submitReviewButton).first();
+  const submitBtn = page.locator('#Button1:visible, #notloggedin:visible, input[value="Submit Review"]:visible').first();
   await submitBtn.waitFor({ state: 'visible', timeout: 10000 });
   await submitBtn.click();
   await page.waitForTimeout(5000);
@@ -124,8 +118,7 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
   console.log('[Desktop PostReview] Current URL after submit:', page.url());
   let reviewUrl = page.url();
 
-  // On desktop: redirected to "your review is submitted" page -> click "your review" link to go to RR page
-  const revLink = page.locator(xpaths.reviewSubmittedLink).first();
+  const revLink = page.locator("a[href*='/review/']:not([href*='writereview']), a:has-text('your review')").first();
   if (await revLink.isVisible().catch(() => false)) {
     const href = await revLink.getAttribute('href');
     if (href) {

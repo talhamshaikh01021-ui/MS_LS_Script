@@ -1,6 +1,6 @@
 {
   "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch'] | //input[contains(@placeholder,'Search')]",
-  "ayurProductLink": "//a[contains(@href,'ayur-shampoo-reviews') or contains(@href,'ayur-shampoo')] | //a[contains(.,'Ayur Shampoo')]",
+  "ayurProductLink": "//a[contains(@href,'/product-reviews/ayur-shampoo-reviews')] | //a[contains(@href,'ayur-shampoo-reviews-925039755')] | //a[contains(.,'Ayur Shampoo')]",
   "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
   "star4Rating": "//span[@id='oRate']//span[contains(@class,'icon-rating')][4] | //div[contains(@class,'star-ratings')]//span[4]",
   "reviewTitleInput": "//input[@id='txtTitle']",
@@ -10,6 +10,6 @@
   "photoIframe1": "//iframe[@id='ifrmImg1']",
   "photoIframe2": "//iframe[@id='ifrmImg2']",
   "iframeFileInput": "//input[@name='filePhoto'] | //input[@type='file']",
-  "submitReviewButton": "//input[@id='Button1'] | //button[contains(text(),'Submit Review')] | //input[@value='Submit Review']",
+  "submitReviewButton": "//input[@id='Button1'] | //input[@id='notloggedin'] | //input[@value='Submit Review'] | //button[contains(text(),'Submit Review')]",
   "reviewSubmittedLink": "//a[contains(@href,'/review/') and not(contains(@href,'writereview'))]"
 }

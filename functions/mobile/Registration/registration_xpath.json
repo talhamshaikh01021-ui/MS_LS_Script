@@ -1,5 +1,5 @@
 {
-  "mobileSignInLink": "//a[@id='hypSign'] | //a[@id='signin'] | //a[contains(text(),'Sign In') or contains(text(),'Sign in')]",
+  "mobileSignInLink": "//a[@id='signin'] | //a[contains(@class,'sign-in-btn')] | //a[text()='YOU'] | //a[@id='hypSign']",
   "mobileSignUpTab": "//a[@id='SignUp'] | //div[contains(@class,'col-m-12')]//a[contains(text(),'Sign Up')]",
   "nameInput": "//input[@id='txtname']",
   "emailInput": "//input[@id='txtEmailId']",

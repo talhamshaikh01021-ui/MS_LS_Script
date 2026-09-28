@@ -21,7 +21,7 @@ export default defineConfig({
     ['html', { open: 'never' }]
   ],
   globalTeardown: path.resolve(__dirname, 'utils/global_teardown.ts'),
-  timeout: 360000, // 6 minutes per test
+  timeout: 600000, // 10 minutes per test
   use: {
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

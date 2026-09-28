@@ -9,5 +9,5 @@
   "fileInput1": "//input[@id='contentBody_filePhoto']",
   "fileInput2": "//input[@id='contentBody_filePhoto2']",
   "videoEmbedInput": "//input[@id='txtEmbed']",
-  "submitReviewButton": "//input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@type='submit' and contains(@value,'Submit')]"
+  "submitReviewButton": "//input[@id='notloggedin'] | //input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@value='Submit Review']"
 }
