@@ -18,6 +18,7 @@ on:
     branches:
       - main
       - master
+      - mouthshut-regression
 
 jobs:
   regression-test:
