@@ -1,5 +1,8 @@
 {
-  "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch1'] | //input[contains(@placeholder,'Search')]",
-  "amazonSearchResult": "//a[contains(@href,'amazon') and (contains(@href,'reviews') or contains(@href,'product'))] | //a[contains(.,'Amazon')]",
-  "reviewLinkOnRar": "//a[contains(@href,'/review/') and not(contains(@href,'writereview'))]"
+  "searchInput": "//input[@id='txtPrdctSearch1'] | //input[@id='searchProd'] | //input[contains(@placeholder,'Search')]",
+  "amazonSuggestion": "ul.ui-autocomplete li a, .ui-menu-item a, li.uib-typeahead-match a",
+  "amazonProductSuggestion": "ul.ui-autocomplete li a:has(.searchTitle:has-text('Amazon')):has(.searchParent:has-text('Online Shopping'))",
+  "amazonListingProduct": "a.product-name:has-text('Amazon')",
+  "amazonSearchResult": "//a[(contains(@href,'online-shopping') or contains(@href,'amazon')) and not(contains(@href,'mobile-phone')) and not(contains(.,'Mobile Phones'))]",
+  "reviewLinkOnRar": ".review-heading a.title, .useful-not-very a, a[href*='/review/amazon-review-']"
 }

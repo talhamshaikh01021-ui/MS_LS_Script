@@ -6,6 +6,15 @@ on:
     - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
+      suite:
+        description: 'Regression Suite to Run (all = Desktop + Mobile in parallel)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - desktop
+          - mobile
       desktop_url:
         description: 'Desktop Base URL'
         required: false
@@ -20,6 +29,9 @@ on:
       - master
       - mouthshut-regression
 
+permissions:
+  contents: read
+
 jobs:
   regression-test:
     name: Execute Desktop & Mobile Master Regression Suites
@@ -30,15 +42,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 12.6.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
@@ -46,12 +60,33 @@ jobs:
       - name: Install Playwright Chromium with OS Dependencies
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run Desktop and Mobile Regression Suites (Simultaneous)
+      - name: Run Regression Suite
         env:
           CI: true
           DESKTOP_BASE_URL: ${{ github.event.inputs.desktop_url || 'https://beta.mouthshut.com' }}
           MOBILE_BASE_URL: ${{ github.event.inputs.mobile_url || 'https://mbeta.mouthshut.com' }}
-        run: pnpm exec playwright test
+          TEST_DATA_JSON: ${{ secrets.TEST_DATA_JSON }}
+          DESKTOP_EMAIL_ID: ${{ secrets.DESKTOP_EMAIL_ID }}
+          DESKTOP_APP_PASSWORD: ${{ secrets.DESKTOP_APP_PASSWORD }}
+          DESKTOP_MSID: ${{ secrets.DESKTOP_MSID }}
+          DESKTOP_PASSWORD: ${{ secrets.DESKTOP_PASSWORD }}
+          MOBILE_EMAIL_ID: ${{ secrets.MOBILE_EMAIL_ID }}
+          MOBILE_APP_PASSWORD: ${{ secrets.MOBILE_APP_PASSWORD }}
+          MOBILE_MSID: ${{ secrets.MOBILE_MSID }}
+          MOBILE_PASSWORD: ${{ secrets.MOBILE_PASSWORD }}
+          REPORT_SENDER_EMAIL: ${{ secrets.REPORT_SENDER_EMAIL }}
+          REPORT_SENDER_PASSWORD: ${{ secrets.REPORT_SENDER_PASSWORD }}
+          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+        run: |
+          SUITE="${{ github.event.inputs.suite || 'all' }}"
+          echo "Executing suite: $SUITE"
+          if [ "$SUITE" = "desktop" ]; then
+            pnpm run test:desktop
+          elif [ "$SUITE" = "mobile" ]; then
+            pnpm run test:mobile
+          else
+            pnpm run test
+          fi
 
       - name: Upload Playwright HTML Report
         if: always()

@@ -1,0 +1,9 @@
+{
+  "rar_share_icon": "//span[contains(@class,'share-review')] | //span[contains(@id,'dvshareAll')]",
+  "email_option": "//a[contains(@class,'mail') or contains(@href,'EmailReviewNew')]",
+  "friend_email_input": "//input[@id='txtEmail']",
+  "sender_name_input": "//input[@id='txtFrom']",
+  "message_input": "//textarea[@id='txtMsg']",
+  "send_button": "//input[@id='btnSubmit'] | //input[@type='submit' and contains(@value,'Submit')]",
+  "success_message": "//div[@id='lblmsg'] | //*[contains(text(),'Your email has been sent')]"
+}

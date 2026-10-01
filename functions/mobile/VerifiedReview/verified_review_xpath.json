@@ -1,12 +1,17 @@
 {
   "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch1'] | //input[contains(@placeholder,'Search')]",
   "ayurProductLink": "//a[contains(@href,'/product-reviews/ayur-shampoo-reviews')] | //a[contains(@href,'ayur-shampoo-reviews-925039755')] | //a[contains(@href,'ayur-shampoo')]",
-  "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
+  "genuineOverlay": "//div[contains(@class,'genuine-review-holder')] | //div[contains(@class,'overlay')] | //div[contains(@class,'genuine')]",
   "star4Rating": "//span[contains(@class,'icon-star-rating') and contains(@onclick,\"rate('4')\")] | //div[contains(@class,'prod-tap-star')]//span[4]",
   "reviewTitleInput": "//input[@id='contentBody_txtTitle'] | //input[@id='txtTitle']",
   "reviewContentTextarea": "//textarea[@id='contentBody_myEditor'] | //textarea[contains(@id,'myEditor')]",
   "fileInput1": "//input[@id='contentBody_filePhoto']",
   "fileInput2": "//input[@id='contentBody_filePhoto2']",
+  "videoYesRadio": "//input[@id='vidYes'] | //input[contains(@class,'videoYes')]",
   "videoEmbedInput": "//input[@id='txtEmbed']",
-  "submitReviewButton": "//input[@id='notloggedin'] | //input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@value='Submit Review']"
+  "submitReviewButton": "//input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@id='notloggedin'] | //input[contains(@class,'wr-submit-btn')]",
+  "phoneInput": "//input[@id='txtphone'] | //input[contains(@class,'phone-field')]",
+  "phoneVerifyButton": "//a[@id='mobileVerification'] | //button[@id='mobileVerification'] | //a[contains(@class,'verify-btn')]",
+  "otpInput": "//input[@id='txtotp'] | //input[contains(@class,'input-otp-code')]",
+  "otpVerifyButton": "(//a[contains(text(),'Verify')] | //button[contains(text(),'Verify')] | //a[contains(@class,'verify-btn')])[2] | //a[@id='otpkey'] | //button[@id='otpkey'] | //a[contains(@onclick,'CheckOtp')]"
 }

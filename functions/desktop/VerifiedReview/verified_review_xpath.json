@@ -5,11 +5,18 @@
   "star4Rating": "//span[@id='oRate']//span[contains(@class,'icon-rating')][4] | //div[contains(@class,'star-ratings')]//span[4]",
   "reviewTitleInput": "//input[@id='txtTitle']",
   "reviewContentTextarea": "//textarea[contains(@id,'myEditor')] | //textarea[@id='txtReview']",
+  "uploadPhotoBtn": "//li[contains(@class,'upload')] | //li[contains(@onclick,'open_photo_upload')] | //*[contains(@class,'icon-camera')]/..",
+  "photoModal": "//div[@id='photosection']",
+  "photoModalClose": "//span[@id='closephoto'] | //span[contains(@onclick,'closeModal')]",
   "attachVideoYesRadio": "//input[@id='embedVYes']",
   "videoEmbedInput": "//input[@id='txtEmbed']",
   "photoIframe1": "//iframe[@id='ifrmImg1']",
   "photoIframe2": "//iframe[@id='ifrmImg2']",
   "iframeFileInput": "//input[@name='filePhoto'] | //input[@type='file']",
   "submitReviewButton": "//input[@id='Button1'] | //input[@id='notloggedin'] | //input[@value='Submit Review'] | //button[contains(text(),'Submit Review')]",
-  "reviewSubmittedLink": "//a[contains(@href,'/review/') and not(contains(@href,'writereview'))]"
+  "reviewSubmittedLink": "//a[contains(@href,'/review/') and not(contains(@href,'writereview'))]",
+  "whereDidYouBuyDropdown": "//select[contains(@id,'ddlnormal_drop')] | //select[contains(@name,'ddlnormal_drop')]",
+  "membershipIdInput": "//input[contains(@id,'txtorderid')] | //input[contains(@name,'txtorderid')]",
+  "contactInput": "//input[contains(@id,'txtcontact')] | //input[contains(@name,'txtcontact')]",
+  "recommendRadio": "//input[contains(@id,'Radopt1')] | //input[contains(@id,'radyes')]"
 }

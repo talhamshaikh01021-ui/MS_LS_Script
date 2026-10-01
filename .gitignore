@@ -9,3 +9,4 @@ node_modules/
 scratch/
 eng.traineddata
 *.log
+.playwright-mcp/

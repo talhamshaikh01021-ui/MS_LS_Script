@@ -6,7 +6,8 @@
       "google_app_password": "dqqv qfqo tjxz eqbi",
       "MSID": "talhamshaikh0102",
       "name": "talhamshaikh0102",
-      "password": "Welcome@123"
+      "password": "Welcome@123",
+      "phone_number": "6591069151"
     },
     "mobile_test_data": {
       "email_id": "talhamshaikh01021@gmail.com",
@@ -14,14 +15,20 @@
       "google_app_password": "eqkt gses xmup rtmy",
       "MSID": "talhamshaikh01021",
       "name": "talhamshaikh01021",
-      "password": "Welcome@123"
+      "password": "Welcome@123",
+      "phone_number": "6591069152"
+    },
+    "report_sender_data": {
+      "email_id": "testing_group@mouthshut.com",
+      "google_app_password_name": "mouhshut_live_status_playwright",
+      "google_app_password": "bajp zjia zrbl bsen"
     },
     "urls": {
       "desktop_base_url": "https://beta.mouthshut.com",
       "mobile_base_url": "https://mbeta.mouthshut.com"
     },
     "review_data": {
-      "video_url": "https://youtu.be/a3ICNMQW7Ok?si=k1g1gsFKI-rFTry9",
+      "video_url": "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/a3ICNMQW7Ok?si=RQW7IA3HLdoqju16\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>",
       "review_image_path": "test_data/review_image/images.jpg",
       "squash": {
         "search_term": "squash",
@@ -33,7 +40,9 @@
         "search_term": "ayur shampoo",
         "title": "Ayur Herbal Shampoo Honest Evaluation",
         "content": "Ayur Herbal shampoo is formulated with amla, shikakai, and reetha extracts. It leaves hair conditioned, manageable, and gently cleansed without excessive dryness. Good natural fragrance and value for daily hair care regimen.",
-        "rating": 4
+        "rating": 4,
+        "phone_desktop": "6591069151",
+        "phone_mobile": "6591069152"
       },
       "amazon": {
         "search_term": "amazon"

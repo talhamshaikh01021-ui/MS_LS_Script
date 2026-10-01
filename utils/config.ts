@@ -16,6 +16,7 @@ export interface TestDataConfig {
     MSID: string;
     name: string;
     password: string;
+    phone_number?: string;
   };
   mobile_test_data: {
     email_id: string;
@@ -24,6 +25,12 @@ export interface TestDataConfig {
     MSID: string;
     name: string;
     password: string;
+    phone_number?: string;
+  };
+  report_sender_data?: {
+    email_id: string;
+    google_app_password_name?: string;
+    google_app_password: string;
   };
   urls?: {
     desktop_base_url?: string;
@@ -43,6 +50,8 @@ export interface TestDataConfig {
       title: string;
       content: string;
       rating: number;
+      phone_desktop?: string;
+      phone_mobile?: string;
     };
     amazon: {
       search_term: string;
@@ -70,7 +79,14 @@ let loadedData: TestDataConfig = {
   }
 };
 
-if (fs.existsSync(testDataPath)) {
+if (process.env.TEST_DATA_JSON) {
+  try {
+    const parsed = JSON.parse(process.env.TEST_DATA_JSON);
+    loadedData = { ...loadedData, ...(parsed.test_data || parsed) };
+  } catch (e) {
+    console.warn('Could not parse TEST_DATA_JSON environment variable, using defaults', e);
+  }
+} else if (fs.existsSync(testDataPath)) {
   try {
     const raw = fs.readFileSync(testDataPath, 'utf8');
     const parsed = JSON.parse(raw);
@@ -79,6 +95,21 @@ if (fs.existsSync(testDataPath)) {
     console.warn('Could not parse test_data.json, using defaults', e);
   }
 }
+
+// Override individual credentials from environment variables if present (e.g. GitHub Secrets)
+if (process.env.DESKTOP_EMAIL_ID) loadedData.desktop_test_data.email_id = process.env.DESKTOP_EMAIL_ID;
+if (process.env.DESKTOP_APP_PASSWORD) loadedData.desktop_test_data.google_app_password = process.env.DESKTOP_APP_PASSWORD;
+if (process.env.DESKTOP_MSID) loadedData.desktop_test_data.MSID = process.env.DESKTOP_MSID;
+if (process.env.DESKTOP_PASSWORD) loadedData.desktop_test_data.password = process.env.DESKTOP_PASSWORD;
+
+if (process.env.MOBILE_EMAIL_ID) loadedData.mobile_test_data.email_id = process.env.MOBILE_EMAIL_ID;
+if (process.env.MOBILE_APP_PASSWORD) loadedData.mobile_test_data.google_app_password = process.env.MOBILE_APP_PASSWORD;
+if (process.env.MOBILE_MSID) loadedData.mobile_test_data.MSID = process.env.MOBILE_MSID;
+if (process.env.MOBILE_PASSWORD) loadedData.mobile_test_data.password = process.env.MOBILE_PASSWORD;
+
+if (process.env.REPORT_SENDER_EMAIL && loadedData.report_sender_data) loadedData.report_sender_data.email_id = process.env.REPORT_SENDER_EMAIL;
+if (process.env.REPORT_SENDER_PASSWORD && loadedData.report_sender_data) loadedData.report_sender_data.google_app_password = process.env.REPORT_SENDER_PASSWORD;
+if (process.env.REPORT_RECIPIENTS) loadedData.report_recipients = process.env.REPORT_RECIPIENTS.split(',').map(s => s.trim()).filter(Boolean);
 
 /**
  * UNIFIED URL VARIABLES:
@@ -102,7 +133,7 @@ export const TEST_DATA: TestDataConfig = {
     mobile_base_url: MOBILE_BASE_URL,
   },
   review_data: {
-    video_url: "https://youtu.be/a3ICNMQW7Ok?si=k1g1gsFKI-rFTry9",
+    video_url: '<iframe width="560" height="315" src="https://www.youtube.com/embed/a3ICNMQW7Ok?si=RQW7IA3HLdoqju16" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>',
     review_image_path: path.resolve(rootDir, 'test_data', 'review_image', 'images.jpg'),
     squash: {
       search_term: "squash",

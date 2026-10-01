@@ -1,5 +1,6 @@
 {
   "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch'] | //input[contains(@placeholder,'Search')]",
-  "amazonSearchResult": "//a[contains(@href,'amazon') and (contains(@href,'reviews') or contains(@href,'product'))] | //a[contains(.,'Amazon')]",
+  "amazonSuggestion": "li.uib-typeahead-match a, ul.ui-autocomplete li a, .dropdown-menu li a",
+  "amazonSearchResult": "//a[(contains(@href,'online-shopping') or contains(@href,'amazon')) and not(contains(@href,'mobile-phone')) and not(contains(.,'Mobile Phones'))]",
   "reviewLinkOnRar": "//a[contains(@id,'lnkTitle')] | //a[contains(@href,'/review/') and not(contains(@href,'writereview'))]"
 }

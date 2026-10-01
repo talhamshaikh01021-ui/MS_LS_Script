@@ -2,6 +2,15 @@
   "mobileMenuButton": "//a[contains(@class,'icon-more-navigation')] | //a[contains(text(),'CATEGORIES')]",
   "realEstateCategoryLink": "//a[contains(@href,'realestate') or contains(.,'Real Estate')]",
   "buildersDevelopersLink": "//a[contains(@href,'builders-and-developers') or contains(.,'Builders')]",
+  "projectsLink": "//a[contains(@href,'/projects') or contains(.,'Projects')]",
   "cityFilterSelect": "//select[@id='selCity'] | //select[contains(@name,'selCity')]",
-  "sortFilterSelect": "//select[@id='ddlsort'] | //select[contains(@name,'ddlsort')]"
+  "sortFilterSelect": "//select[@id='ddlsort'] | //select[contains(@name,'ddlsort')]",
+  "mobileSortButton": ".sortby-filter, span:has-text('Popular')",
+  "sortingModal": "#sortingModal",
+  "sortProductRatingOption": "#sortingModal li:has-text('Product Rating')",
+  "sortMostReviewedOption": "#sortingModal li:has-text('Most Reviewed')",
+  "mobileFiltersButton": ".listing-filter-type:has-text('Filters'), span:has-text('Filters')",
+  "cityOptionMumbai": ".filter-option-ul label:has-text('Mumbai'), .filter-option-ul li:has-text('Mumbai')",
+  "cityOptionAhmedabad": ".filter-option-ul label:has-text('Ahmedabad'), .filter-option-ul li:has-text('Ahmedabad')",
+  "applyFilterButton": ".filter-btn, div:has-text('Apply'), button:has-text('Apply')"
 }

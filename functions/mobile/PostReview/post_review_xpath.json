@@ -1,13 +1,14 @@
 {
   "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch1'] | //input[contains(@placeholder,'Search')]",
   "squashProductLink": "//a[contains(@href,'squash-reviews') or contains(@href,'squash')] | //div[contains(.,'Squash')]//a",
-  "writeReviewButton": "//a[@id='dvwritereview'] | //a[contains(text(),'WRITE A REVIEW')] | //a[contains(@class,'wr-btn')]",
-  "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
+  "writeReviewButton": "//a[contains(@class,'wr-btn') and contains(.,'WRITE A REVIEW')] | //a[@id='dvwritereview' and contains(@class,'wr-btn')] | //a[contains(text(),'WRITE A REVIEW')]",
+  "genuineOverlay": "//div[contains(@class,'genuine-review-holder')] | //div[contains(@class,'overlay')] | //div[contains(@class,'genuine')]",
   "star2Rating": "//span[contains(@class,'icon-star-rating') and contains(@onclick,\"rate('2')\")] | //div[contains(@class,'prod-tap-star')]//span[2]",
   "reviewTitleInput": "//input[@id='contentBody_txtTitle'] | //input[@id='txtTitle']",
   "reviewContentTextarea": "//textarea[@id='contentBody_myEditor'] | //textarea[contains(@id,'myEditor')]",
   "fileInput1": "//input[@id='contentBody_filePhoto']",
   "fileInput2": "//input[@id='contentBody_filePhoto2']",
+  "videoYesRadio": "//input[@id='vidYes'] | //input[contains(@class,'videoYes')]",
   "videoEmbedInput": "//input[@id='txtEmbed']",
-  "submitReviewButton": "//input[@id='notloggedin'] | //input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@value='Submit Review']"
+  "submitReviewButton": "//input[@id='btnSubmit_nologin'] | //input[@id='Button1'] | //input[@id='notloggedin'] | //input[contains(@class,'wr-submit-btn')]"
 }

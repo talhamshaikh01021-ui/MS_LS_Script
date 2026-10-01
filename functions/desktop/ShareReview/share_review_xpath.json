@@ -1,0 +1,9 @@
+{
+  "share_button": "//span[@id='spnshare']//button | //button[contains(@class,'share')] | //span[contains(@class,'icon-share')]",
+  "email_option": "//a[contains(@id,'linkEmailpage') or contains(@class,'mail')][contains(@href,'emailreview.php')]",
+  "friend_email_input": "//input[@id='txtEmail']",
+  "sender_name_input": "//input[@id='txtFrmName']",
+  "message_input": "//textarea[@id='txtMessage']",
+  "send_button": "//input[@id='btnSubmit'] | //input[@type='submit' and contains(@value,'Send')]",
+  "success_message": "//*[contains(text(),'Your email has been sent')]"
+}

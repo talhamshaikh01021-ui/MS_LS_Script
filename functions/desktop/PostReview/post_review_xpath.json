@@ -1,16 +1,24 @@
 {
   "searchInput": "//input[@id='searchProd'] | //input[@id='txtPrdctSearch'] | //input[contains(@placeholder,'Search')]",
-  "squashProductLink": "//a[contains(@href,'/product-reviews/squash-reviews')] | //a[contains(@href,'squash-reviews-925004658')] | //a[contains(.,'Squash')]",
+  "searchCategoryResult": "//a[contains(@href,'indoor-games') or contains(@href,'srchcatid') or contains(@ng-href,'indoor-games') or contains(@ng-href,'srchcatid')]",
+  "squashProductLink": "//a[contains(@href,'/product-reviews/squash-reviews') or contains(@href,'squash-reviews-925004658')]",
   "writeReviewButton": "//button[@id='ctl00_ctl00_ContentPlaceHolderFooter_ContentPlaceHolderBody_customheader_btnwritereview'] | //button[@id='ctl00_ctl00_ContentPlaceHolderFooter_ContentPlaceHolderBody_tabs1_btnWritereview_scroll'] | //button[@id='ctl00_ctl00_ContentPlaceHolderFooter_linkWriteReview'] | //button[contains(text(),'Write') and contains(text(),'Review')] | //a[contains(text(),'Write') and contains(text(),'Review')]",
   "genuineOverlay": "//div[contains(@class,'overlay')] | //div[contains(@class,'genuine')] | //img[contains(@src,'genuine')]",
   "star2Rating": "//span[@id='oRate']//span[contains(@class,'icon-rating')][2] | //div[contains(@class,'star-ratings')]//span[2]",
   "reviewTitleInput": "//input[@id='txtTitle']",
   "reviewContentTextarea": "//textarea[contains(@id,'myEditor')] | //textarea[@id='txtReview']",
+  "uploadPhotoBtn": "//li[contains(@class,'upload')] | //li[contains(@onclick,'open_photo_upload')] | //*[contains(@class,'icon-camera')]/..",
+  "photoModal": "//div[@id='photosection']",
+  "photoModalClose": "//span[@id='closephoto'] | //span[contains(@onclick,'closeModal')]",
   "attachVideoYesRadio": "//input[@id='embedVYes']",
   "videoEmbedInput": "//input[@id='txtEmbed']",
   "photoIframe1": "//iframe[@id='ifrmImg1']",
   "photoIframe2": "//iframe[@id='ifrmImg2']",
   "iframeFileInput": "//input[@name='filePhoto'] | //input[@type='file']",
   "submitReviewButton": "//input[@id='Button1'] | //input[@id='notloggedin'] | //input[@value='Submit Review'] | //button[contains(text(),'Submit Review')]",
-  "reviewSubmittedLink": "//a[contains(@href,'/review/') and not(contains(@href,'writereview'))] | //a[contains(text(),'your review') or contains(text(),'View Review')]"
+  "reviewSubmittedLink": "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'your review')] | //a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'your review')] | //a[contains(text(),'your review') or contains(text(),'Your Review') or contains(text(),'View Review')]",
+  "whereDidYouBuyDropdown": "//select[contains(@id,'ddlnormal_drop')] | //select[contains(@name,'ddlnormal_drop')]",
+  "membershipIdInput": "//input[contains(@id,'txtorderid')] | //input[contains(@name,'txtorderid')]",
+  "contactInput": "//input[contains(@id,'txtcontact')] | //input[contains(@name,'txtcontact')]",
+  "recommendRadio": "//input[contains(@id,'Radopt1')] | //input[contains(@id,'radyes')]"
 }

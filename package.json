@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test --project=\"Desktop Master Suite\" --project=\"Mobile Master Suite\"",
     "test:desktop": "playwright test --project=\"Desktop Master Suite\"",
     "test:mobile": "playwright test --project=\"Mobile Master Suite\"",
+    "test:share": "playwright test --project=\"Share Review Suite\"",
     "report": "playwright show-report"
   },
   "keywords": [],

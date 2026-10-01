@@ -2,6 +2,7 @@
   "browseCategoriesButton": "//button[contains(@class,'categories-btn')] | //a[contains(text(),'Browse')]",
   "realEstateCategoryLink": "//a[contains(@class,'browse-cat-type-text') and contains(text(),'Real Estate')] | //a[contains(@href,'/realestate')]",
   "buildersDevelopersLink": "//a[contains(@href,'builders-and-developers') and contains(.,'Builders')]",
+  "projectsLink": "//a[contains(@href,'/projects') and contains(.,'Projects')] | //a[contains(@href,'/projects')]",
   "cityFilterSelect": "//select[@id='selCity'] | //select[contains(@name,'selCity')]",
   "sortFilterSelect": "//select[@id='ddlsort'] | //select[contains(@name,'ddlsort')]",
   "topDevelopersLink": "//a[contains(@href,'builders-and-developers') and not(contains(@href,'javascript'))][1]",
