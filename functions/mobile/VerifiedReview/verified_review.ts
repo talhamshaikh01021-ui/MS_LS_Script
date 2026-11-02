@@ -6,13 +6,16 @@ import { MOBILE_BASE_URL, TEST_DATA, ROOT_DIR } from '../../../utils/config.js';
 import { fillWarExtraFields } from '../../../utils/war_helper.js';
 import { fetchRegistrationOtp } from '../../../utils/email_helper.js';
 import { mobileReviewActions } from '../ReviewActions/review_actions.js';
+import { dismissContestBannerIfVisible } from '../../../utils/contest_banner.js';
+import { fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'verified_review_xpath.json'), 'utf8'));
 
-export async function mobileVerifiedReview(page: Page): Promise<{ reviewUrl: string }> {
-  console.log('[Mobile VerifiedReview] Starting Ayur Shampoo verified review flow on mobile...');
+export async function mobileVerifiedReview(page: Page, userId?: string): Promise<{ reviewUrl: string }> {
+  const registeredUserId = userId || TEST_DATA.mobile_test_data.MSID;
+  console.log(`[Mobile VerifiedReview] Starting Ayur Shampoo verified review flow on mobile (Registered User ID: ${registeredUserId})...`);
 
   // 1. Navigate to Ayur Shampoo RAR page
   console.log('[Mobile VerifiedReview] Navigating to Ayur Shampoo RAR page...');
@@ -26,14 +29,18 @@ export async function mobileVerifiedReview(page: Page): Promise<{ reviewUrl: str
   await page.waitForURL(url => url.toString().includes('writereview'), { timeout: 15000 }).catch(() => { });
   await page.waitForTimeout(3000);
 
-  // 3. Dismiss genuine overlay if present
+  // 3. Dismiss genuine overlay & contest banner if present
+  await dismissContestBannerIfVisible(page);
   await page.evaluate(() => {
-    document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"]').forEach(el => {
+    document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"], #ms-idle-popup, #ms-contest-idle-popup').forEach(el => {
       if (!el.classList.contains('signup-container') && !el.classList.contains('login') && !el.classList.contains('otp')) {
         (el as HTMLElement).style.display = 'none';
       }
     });
+    document.body.style.overflow = '';
+    document.body.classList.remove('ms-idle-popup-open');
   }).catch(() => { });
+  await dismissContestBannerIfVisible(page);
   await page.waitForTimeout(1000);
 
   // 4. Upload images first so postback navigation doesn't reset form fields
@@ -370,12 +377,31 @@ export async function mobileVerifiedReview(page: Page): Promise<{ reviewUrl: str
   }
   await page.bringToFront().catch(() => { });
 
-  const reviewUrl = page.url();
+  let reviewUrl = page.url();
+
+  // If not on specific RR page, fetch RR key and URL for registered User ID from Ayur Shampoo RAR
+  if (!reviewUrl.includes('/review/') || reviewUrl.includes('thankyou') || reviewUrl.endsWith('-review-') || reviewUrl.includes('-reviews-')) {
+    console.log(`[Mobile VerifiedReview] Not on specific RR page (${reviewUrl}). Fetching review URL for registered User ID: ${registeredUserId} from Ayur Shampoo RAR...`);
+    const rarUrl = `${MOBILE_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: MOBILE_BASE_URL,
+      rarUrl
+    });
+
+    if (userRev.reviewUrl) {
+      reviewUrl = userRev.reviewUrl;
+      console.log(`[Mobile VerifiedReview] Navigating to registered user review: ${reviewUrl}`);
+      await page.goto(reviewUrl, { waitUntil: 'domcontentloaded' }).catch(() => { });
+      await page.waitForTimeout(2000);
+    }
+  }
+
   console.log(`[Mobile VerifiedReview] Final review URL on Ayur Shampoo RR: ${reviewUrl}`);
 
   // 13. Perform all RR and RAR review activities for Ayur Shampoo
   console.log('[Mobile VerifiedReview] Performing all RR and RAR review activities for Ayur Shampoo...');
-  await mobileReviewActions(page, reviewUrl, 'ayur');
+  await mobileReviewActions(page, reviewUrl, 'ayur', registeredUserId);
 
   return { reviewUrl };
 }

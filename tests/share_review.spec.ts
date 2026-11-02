@@ -2,10 +2,15 @@ import { test, expect } from '@playwright/test';
 import { desktopShareReview } from '../functions/desktop/ShareReview/share_review.js';
 import { mobileShareReview } from '../functions/mobile/ShareReview/share_review.js';
 import { RegressionReporter } from '../utils/reporter.js';
+import { setupContestBannerPrevention } from '../utils/contest_banner.js';
 
 test.describe('Ayur Shampoo Share Review Activity', () => {
   test.describe.configure({ mode: 'serial' });
   const reporter = RegressionReporter.getInstance();
+
+  test.beforeEach(async ({ page }) => {
+    await setupContestBannerPrevention(page);
+  });
 
   test('Desktop: Share Ayur Shampoo Review, Verify Email Arrival & Redirection', async ({ page }) => {
     test.setTimeout(120000);

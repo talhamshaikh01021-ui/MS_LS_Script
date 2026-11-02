@@ -4,13 +4,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { MOBILE_BASE_URL, TEST_DATA, ROOT_DIR } from '../../../utils/config.js';
 import { fillWarExtraFields } from '../../../utils/war_helper.js';
+import { dismissContestBannerIfVisible } from '../../../utils/contest_banner.js';
+import { fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'post_review_xpath.json'), 'utf8'));
 
-export async function mobilePostReview(page: Page): Promise<{ reviewUrl: string }> {
-  console.log('[Mobile PostReview] Starting review submission for Squash on mobile...');
+export async function mobilePostReview(page: Page, userId?: string): Promise<{ reviewUrl: string }> {
+  const registeredUserId = userId || TEST_DATA.mobile_test_data.MSID;
+  console.log(`[Mobile PostReview] Starting review submission for Squash on mobile (Registered User ID: ${registeredUserId})...`);
 
   // 1. Search squash / navigate to Squash RAR page
   console.log('[Mobile PostReview] Navigating to Squash RAR page...');
@@ -28,15 +31,19 @@ export async function mobilePostReview(page: Page): Promise<{ reviewUrl: string 
   await page.waitForURL(url => url.toString().includes('writereview'), { timeout: 15000 }).catch(() => {});
   await page.waitForTimeout(2000);
 
-  // 3. Genuine overlay check: "tap once on the screen because an image will cover the screen"
-  console.log('[Mobile PostReview] Dismissing genuine overlay if present...');
+  // 3. Genuine overlay check & contest banner dismissal
+  console.log('[Mobile PostReview] Dismissing genuine overlay & contest banner if present...');
+  await dismissContestBannerIfVisible(page);
   await page.evaluate(() => {
-    document.querySelectorAll('.surveylayer, .black-layer, .overlay, [class*="genuine"]').forEach(el => {
+    document.querySelectorAll('.surveylayer, .black-layer, .overlay, [class*="genuine"], #ms-idle-popup, #ms-contest-idle-popup').forEach(el => {
       if (!el.classList.contains('signup-container') && !el.classList.contains('login') && !el.classList.contains('otp')) {
         (el as HTMLElement).style.display = 'none';
       }
     });
+    document.body.style.overflow = '';
+    document.body.classList.remove('ms-idle-popup-open');
   }).catch(() => {});
+  await dismissContestBannerIfVisible(page);
   await page.waitForTimeout(1000);
 
   // 4. Upload photos (uploading first so ASP.NET postback does not clear subsequent form entries)
@@ -184,18 +191,34 @@ export async function mobilePostReview(page: Page): Promise<{ reviewUrl: string 
   }
 
   // Check for "your review" link if redirected to thank you page
-  const revLink = page.locator("a:has-text('your review'), a:has-text('Your Review'), a[href*='/review/']").first();
+  const revLink = page.locator("a").filter({ hasText: /your review/i }).first();
   if (await revLink.isVisible().catch(() => false)) {
     const href = await revLink.getAttribute('href');
     if (href && href.includes('/review/') && !href.endsWith('-review-')) {
       const fullUrl = href.startsWith('http') ? href : `${MOBILE_BASE_URL}${href}`;
-      console.log('[Mobile PostReview] Navigating to created review URL:', fullUrl);
+      console.log('[Mobile PostReview] Navigating to created review URL via "your review" link:', fullUrl);
       await page.goto(fullUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
       await page.waitForTimeout(2000);
     }
   }
 
-  // Prompt note: "for mobile you will be redirected to review page itself."
+  // If still not on RR page, or if on thankyou / RAR page, fetch the RR key and URL from the review of the registered User ID
+  if (!page.url().includes('/review/') || page.url().includes('thankyou') || page.url().endsWith('-review-') || page.url().includes('-reviews-')) {
+    console.log(`[Mobile PostReview] Not on specific RR page (${page.url()}). Fetching review URL for registered User ID: ${registeredUserId} from Squash RAR...`);
+    const rarUrl = `${MOBILE_BASE_URL}/product-reviews/squash-reviews-925004658`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: MOBILE_BASE_URL,
+      rarUrl
+    });
+
+    if (userRev.reviewUrl) {
+      console.log(`[Mobile PostReview] Navigating to registered user review: ${userRev.reviewUrl}`);
+      await page.goto(userRev.reviewUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await page.waitForTimeout(2000);
+    }
+  }
+
   console.log('[Mobile PostReview] Post-submit URL on mobile:', page.url());
   return { reviewUrl: page.url() };
 }

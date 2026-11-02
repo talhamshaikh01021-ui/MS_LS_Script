@@ -7,15 +7,18 @@ import { mobileRealEstate } from '../functions/mobile/RealEstate/real_estate.js'
 import { mobilePageLoadTiming } from '../functions/mobile/PageLoadTiming/pageload_timing.js';
 import { mobileShareReview } from '../functions/mobile/ShareReview/share_review.js';
 import { RegressionReporter } from '../utils/reporter.js';
-
+import { setupContestBannerPrevention } from '../utils/contest_banner.js';
 test.describe('Mobile Regression Master Suite', () => {
   test.describe.configure({ mode: 'serial' });
   const reporter = RegressionReporter.getInstance();
-
   test('Execute Mobile Full Regression Flow', async ({ page }) => {
     test.setTimeout(900000); // 15 minute suite timeout
+    let registeredUserId = 'talhamshaikh01021';
     let reviewUrl = '';
     let ayurReviewUrl = '';
+
+    // Initialize anti-contest-idle-banner handler across all pages and contexts
+    await setupContestBannerPrevention(page);
 
     // Set default server status (Activity 14)
     reporter.setActivityStatus('Mobile', 14, 'GoldIndia 1');
@@ -25,8 +28,9 @@ test.describe('Mobile Regression Master Suite', () => {
     try {
       console.log('>>> [Mobile Master] Starting Activity 1: Registration');
       const regRes = await mobileRegistration(page);
+      if (regRes?.msid) registeredUserId = regRes.msid;
       reporter.recordStep('Activity 1: Mobile Registration & Verification', 'Mobile', 'PASSED', Date.now() - act1Start, 'Completed mobile signup, captcha OCR, email verification prompt, OTP verification and 3 mail checks');
-      const msid = regRes?.msid || 'talhamshaikh01021';
+      const msid = registeredUserId;
       const otpSec = regRes?.otpSec ? regRes.otpSec.toFixed(2) : '1.67';
       reporter.setActivityStatus('Mobile', 1, `Fine(${msid})`);
       reporter.setActivityStatus('Mobile', 2, `Fine (${otpSec} sec)`);
@@ -39,7 +43,7 @@ test.describe('Mobile Regression Master Suite', () => {
       }).catch(() => false);
       if (isAuth) {
         console.log('[Mobile Master] User session is authenticated despite warning in Activity 1. Marking rows 1, 2, 5 as Fine.');
-        reporter.setActivityStatus('Mobile', 1, `Fine(talhamshaikh01021)`);
+        reporter.setActivityStatus('Mobile', 1, `Fine(${registeredUserId})`);
         reporter.setActivityStatus('Mobile', 2, `Fine (1.67 sec)`);
         reporter.setActivityStatus('Mobile', 5, 'Fine');
       } else {
@@ -54,7 +58,7 @@ test.describe('Mobile Regression Master Suite', () => {
     const act2Start = Date.now();
     try {
       console.log('>>> [Mobile Master] Starting Activity 2: Post Review (Squash)');
-      const res = await mobilePostReview(page);
+      const res = await mobilePostReview(page, registeredUserId);
       reviewUrl = res.reviewUrl;
       reporter.recordStep('Activity 2: Post Review with Photo and Video (Squash)', 'Mobile', 'PASSED', Date.now() - act2Start, `Submitted 2-star review, uploaded 2 images & YT video URL. RR URL: ${reviewUrl}`);
       reporter.setActivityStatus('Mobile', 6, 'Fine');
@@ -68,7 +72,7 @@ test.describe('Mobile Regression Master Suite', () => {
     const act3Start = Date.now();
     try {
       console.log('>>> [Mobile Master] Starting Activity 3: Review Actions & RAR Verification');
-      await mobileReviewActions(page, reviewUrl);
+      await mobileReviewActions(page, reviewUrl, 'squash', registeredUserId);
       reporter.recordStep('Activity 3: Post Comment, Self-Rating & RAR to RR Redirection Verification', 'Mobile', 'PASSED', Date.now() - act3Start, 'Verified details on RR, verified self-rating restriction, verified clicking rating/comment on mobile RAR redirects to RR');
       reporter.setActivityStatus('Mobile', 7, 'Fine');
     } catch (err: any) {
@@ -81,7 +85,7 @@ test.describe('Mobile Regression Master Suite', () => {
     const act4Start = Date.now();
     try {
       console.log('>>> [Mobile Master] Starting Activity 4: Verified Review (Ayur Shampoo /dummytest)');
-      const ayurRes = await mobileVerifiedReview(page);
+      const ayurRes = await mobileVerifiedReview(page, registeredUserId);
       ayurReviewUrl = ayurRes?.reviewUrl || '';
       reporter.recordStep('Activity 4: Ayur Shampoo Verified Review (/dummytest 4-stars & Phone/OTP)', 'Mobile', 'PASSED', Date.now() - act4Start, 'Submitted 4-star verified review with extra fields, entered phone 6591069152, fetched & submitted email OTP, clicked your review link, and completed all RAR/RR review actions');
       reporter.setActivityStatus('Mobile', 20, 'Fine');
@@ -134,7 +138,7 @@ test.describe('Mobile Regression Master Suite', () => {
     const act7Start = Date.now();
     try {
       console.log('>>> [Mobile Master] Starting Activity 7: Share Review (Ayur Shampoo)');
-      const shareRes = await mobileShareReview(page, ayurReviewUrl, 'talhamshaikh0102@gmail.com');
+      const shareRes = await mobileShareReview(page, ayurReviewUrl, 'talhamshaikh0102@gmail.com', registeredUserId);
       reporter.recordStep(
         'Activity 7: Share Ayur Shampoo Review & Redirection Verification',
         'Mobile',

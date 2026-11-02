@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { MOBILE_BASE_URL, TEST_DATA } from '../../../utils/config.js';
 import { fetchSharedReviewEmail } from '../../../utils/email_helper.js';
+import { extractRrKey, fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,49 +31,42 @@ export interface MobileShareReviewResult {
 export async function mobileShareReview(
   page: Page,
   reviewUrl?: string,
-  targetEmail: string = 'talhamshaikh0102@gmail.com'
+  targetEmail: string = 'talhamshaikh0102@gmail.com',
+  userId?: string
 ): Promise<MobileShareReviewResult> {
-  console.log(`[Mobile ShareReview] Starting Share Review Activity for Ayur Shampoo to: ${targetEmail}`);
+  const registeredUserId = userId || TEST_DATA.mobile_test_data.MSID;
+  console.log(`[Mobile ShareReview] Starting Share Review Activity for Ayur Shampoo to: ${targetEmail} (Registered User ID: ${registeredUserId})`);
 
   // 1. Ensure on Ayur Shampoo review or RAR page
   let targetReviewUrl = reviewUrl;
   let rid = '';
 
-  if (targetReviewUrl && targetReviewUrl.includes('/review/')) {
-    const match = targetReviewUrl.match(/(?:review-|rid=)([a-zA-Z0-9]+)/);
-    if (match) rid = match[1];
+  if (targetReviewUrl && targetReviewUrl.includes('/review/') && !targetReviewUrl.endsWith('-review-')) {
+    rid = extractRrKey(targetReviewUrl) || '';
   }
 
-  if (!rid) {
-    // If no valid review URL passed, navigate to mobile Ayur Shampoo RAR
-    console.log('[Mobile ShareReview] Navigating to mobile Ayur Shampoo RAR...');
-    await page.goto(`${MOBILE_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`, { waitUntil: 'domcontentloaded' });
-    await page.evaluate(() => window.scrollTo(0, 1500));
-    await page.waitForTimeout(2000);
+  // If no valid RR key from reviewUrl, fetch from Ayur Shampoo RAR by registered User ID (not first review)
+  if (!rid || !targetReviewUrl || !targetReviewUrl.includes('/review/') || targetReviewUrl.endsWith('-review-')) {
+    console.log(`[Mobile ShareReview] Fetching RR key from mobile Ayur Shampoo RAR for registered User ID: ${registeredUserId}...`);
+    const rarUrl = `${MOBILE_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: MOBILE_BASE_URL,
+      rarUrl
+    });
 
-    // Look for share-review trigger on review card
-    const shareBtn = page.locator("span.share-review, [id*='dvshareAll']").first();
-    if (await shareBtn.isVisible().catch(() => false)) {
-      const oc = await shareBtn.getAttribute('onclick').catch(() => '');
-      const m = oc?.match(/['"]([a-zA-Z0-9]{8,15})['"]/g);
-      if (m && m.length > 0) {
-        // Find alphanumeric review id
-        for (const token of m) {
-          const clean = token.replace(/['"]/g, '');
-          if (/^[a-z0-9]{10,12}$/i.test(clean)) {
-            rid = clean;
-            break;
-          }
-        }
-      }
-    }
-
-    if (!rid) {
-      rid = 'sqqsntmqoop'; // Fallback to verified Ayur Shampoo review ID
+    if (userRev.rrKey) {
+      rid = userRev.rrKey;
+      targetReviewUrl = userRev.reviewUrl || `${MOBILE_BASE_URL}/review/ayur-shampoo-review-${rid}`;
+      console.log(`[Mobile ShareReview] Successfully fetched RR key from registered User ID: ${rid}`);
+    } else {
+      console.warn(`[Mobile ShareReview] Review for registered User ID "${registeredUserId}" not found on RAR; using fallback.`);
+      rid = 'sqqsntmqoop';
+      targetReviewUrl = `${MOBILE_BASE_URL}/review/ayur-shampoo-review-sqqsntmqoop`;
     }
   }
 
-  console.log(`[Mobile ShareReview] Target Review ID for sharing: ${rid}`);
+  console.log(`[Mobile ShareReview] Target Review ID (RR key) for sharing: ${rid}`);
 
   // 2. Open Mobile Share / EmailReviewNew form
   const mobileShareUrl = `${MOBILE_BASE_URL}/review/EmailReviewNew.aspx?rid=${rid}`;

@@ -7,13 +7,16 @@ import { fillWarExtraFields } from '../../../utils/war_helper.js';
 import { fetchRegistrationOtp } from '../../../utils/email_helper.js';
 import { desktopReviewActions } from '../ReviewActions/review_actions.js';
 import { ensureDesktopLoggedIn } from '../Registration/registration.js';
+import { dismissContestBannerIfVisible } from '../../../utils/contest_banner.js';
+import { fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'verified_review_xpath.json'), 'utf8'));
 
-export async function desktopVerifiedReview(page: Page): Promise<{ reviewUrl: string }> {
-  console.log('[Desktop VerifiedReview] Starting Ayur Shampoo verified review flow...');
+export async function desktopVerifiedReview(page: Page, userId?: string): Promise<{ reviewUrl: string }> {
+  const registeredUserId = userId || TEST_DATA.desktop_test_data.MSID;
+  console.log(`[Desktop VerifiedReview] Starting Ayur Shampoo verified review flow (Registered User ID: ${registeredUserId})...`);
 
   // Ensure active authenticated session
   await ensureDesktopLoggedIn(page);
@@ -44,18 +47,21 @@ export async function desktopVerifiedReview(page: Page): Promise<{ reviewUrl: st
   // Verify redirected to write a review page
   console.log(`[Desktop VerifiedReview] Current URL on verified write review page: ${page.url()}`);
 
-  // 4. Dismiss genuine overlay if present (avoid hiding modal containers)
+  // 4. Dismiss genuine overlay & contest banner if present (avoid hiding modal containers)
+  await dismissContestBannerIfVisible(page);
   try {
     await page.evaluate(() => {
-      document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"]').forEach(el => {
+      document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"], #ms-contest-idle-popup').forEach(el => {
         if (!el.classList.contains('signup-container') && !el.classList.contains('login') && !el.classList.contains('otp')) {
           (el as HTMLElement).style.display = 'none';
         }
       });
+      document.body.style.overflow = '';
     }).catch(() => {});
   } catch (e) {
     console.log('[Desktop VerifiedReview] No genuine overlay found.');
   }
+  await dismissContestBannerIfVisible(page);
   await page.waitForTimeout(1000);
 
   // 5. Star Rating: give 4 stars rating (Activity 4: "for this product give 4 stars")
@@ -373,12 +379,31 @@ export async function desktopVerifiedReview(page: Page): Promise<{ reviewUrl: st
   }
   await page.bringToFront().catch(() => {});
 
-  const reviewUrl = page.url();
+  let reviewUrl = page.url();
+
+  // If not on specific RR page, fetch RR key and URL for registered User ID from Ayur Shampoo RAR
+  if (!reviewUrl.includes('/review/') || reviewUrl.includes('thankyou') || reviewUrl.endsWith('-review-') || reviewUrl.includes('-reviews-')) {
+    console.log(`[Desktop VerifiedReview] Not on specific RR page (${reviewUrl}). Fetching review URL for registered User ID: ${registeredUserId} from Ayur Shampoo RAR...`);
+    const rarUrl = `${DESKTOP_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: DESKTOP_BASE_URL,
+      rarUrl
+    });
+
+    if (userRev.reviewUrl) {
+      reviewUrl = userRev.reviewUrl;
+      console.log(`[Desktop VerifiedReview] Navigating to registered user review: ${reviewUrl}`);
+      await page.goto(reviewUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await page.waitForTimeout(2000);
+    }
+  }
+
   console.log(`[Desktop VerifiedReview] Final review URL on Ayur Shampoo RR: ${reviewUrl}`);
 
   // 13. Perform all RR and RAR review activities for Ayur Shampoo
   console.log('[Desktop VerifiedReview] Performing all RR and RAR review activities for Ayur Shampoo...');
-  await desktopReviewActions(page, reviewUrl, 'ayur');
+  await desktopReviewActions(page, reviewUrl, 'ayur', registeredUserId);
 
   return { reviewUrl };
 }

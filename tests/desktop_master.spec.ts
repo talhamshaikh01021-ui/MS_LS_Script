@@ -7,15 +7,18 @@ import { desktopRealEstate } from '../functions/desktop/RealEstate/real_estate.j
 import { desktopPageLoadTiming } from '../functions/desktop/PageLoadTiming/pageload_timing.js';
 import { desktopShareReview } from '../functions/desktop/ShareReview/share_review.js';
 import { RegressionReporter } from '../utils/reporter.js';
-
+import { setupContestBannerPrevention } from '../utils/contest_banner.js';
 test.describe('Desktop Regression Master Suite', () => {
   test.describe.configure({ mode: 'serial' });
   const reporter = RegressionReporter.getInstance();
-
   test('Execute Desktop Full Regression Flow', async ({ page }) => {
     test.setTimeout(900000); // 15 minute suite timeout
+    let registeredUserId = 'talhamshaikh0102';
     let reviewUrl = '';
     let ayurReviewUrl = '';
+
+    // Initialize anti-contest-idle-banner handler across all pages and contexts
+    await setupContestBannerPrevention(page);
 
     // Set default server status (Activity 14)
     reporter.setActivityStatus('Desktop', 14, 'GoldIndia 1');
@@ -25,8 +28,9 @@ test.describe('Desktop Regression Master Suite', () => {
     try {
       console.log('>>> [Desktop Master] Starting Activity 1: Registration');
       const regRes = await desktopRegistration(page);
+      if (regRes?.msid) registeredUserId = regRes.msid;
       reporter.recordStep('Activity 1: Desktop Registration & Verification', 'Desktop', 'PASSED', Date.now() - act1Start, 'Completed signup, captcha OCR, OTP verification and 3 mail checks');
-      const msid = regRes?.msid || 'talhamshaikh0102';
+      const msid = registeredUserId;
       const otpSec = regRes?.otpSec ? regRes.otpSec.toFixed(2) : '1.67';
       reporter.setActivityStatus('Desktop', 1, `Fine(${msid})`);
       reporter.setActivityStatus('Desktop', 2, `Fine (${otpSec} sec)`);
@@ -39,7 +43,7 @@ test.describe('Desktop Regression Master Suite', () => {
       }).catch(() => false);
       if (isAuth) {
         console.log('[Desktop Master] User session is authenticated despite warning in Activity 1. Marking rows 1, 2, 5 as Fine.');
-        reporter.setActivityStatus('Desktop', 1, `Fine(talhamshaikh0102)`);
+        reporter.setActivityStatus('Desktop', 1, `Fine(${registeredUserId})`);
         reporter.setActivityStatus('Desktop', 2, `Fine (1.67 sec)`);
         reporter.setActivityStatus('Desktop', 5, 'Fine');
       } else {
@@ -54,7 +58,7 @@ test.describe('Desktop Regression Master Suite', () => {
     const act2Start = Date.now();
     try {
       console.log('>>> [Desktop Master] Starting Activity 2: Post Review (Squash)');
-      const res = await desktopPostReview(page);
+      const res = await desktopPostReview(page, registeredUserId);
       reviewUrl = res.reviewUrl;
       reporter.recordStep('Activity 2: Post Review with Photo and Video (Squash)', 'Desktop', 'PASSED', Date.now() - act2Start, `Submitted 2-star review, uploaded 2 images & YT video URL. RR URL: ${reviewUrl}`);
       reporter.setActivityStatus('Desktop', 6, 'Fine');
@@ -68,7 +72,7 @@ test.describe('Desktop Regression Master Suite', () => {
     const act3Start = Date.now();
     try {
       console.log('>>> [Desktop Master] Starting Activity 3: Review Actions & RAR Verification');
-      await desktopReviewActions(page, reviewUrl);
+      await desktopReviewActions(page, reviewUrl, 'squash', registeredUserId);
       reporter.recordStep('Activity 3: Post Comment, Self-Rating Verification & RAR Actions', 'Desktop', 'PASSED', Date.now() - act3Start, 'Verified details on RR, verified self-rating block, rated/commented on RAR & RR reviews');
       reporter.setActivityStatus('Desktop', 7, 'Fine');
     } catch (err: any) {
@@ -81,7 +85,7 @@ test.describe('Desktop Regression Master Suite', () => {
     const act4Start = Date.now();
     try {
       console.log('>>> [Desktop Master] Starting Activity 4: Verified Review (Ayur Shampoo /dummytest)');
-      const ayurRes = await desktopVerifiedReview(page);
+      const ayurRes = await desktopVerifiedReview(page, registeredUserId);
       ayurReviewUrl = ayurRes?.reviewUrl || '';
       reporter.recordStep('Activity 4: Ayur Shampoo Verified Review (/dummytest 4-stars & Phone/OTP)', 'Desktop', 'PASSED', Date.now() - act4Start, 'Submitted 4-star verified review with extra fields, entered phone 6591069151, fetched & submitted email OTP, clicked your review link, and completed all RAR/RR review actions');
       reporter.setActivityStatus('Desktop', 20, 'Fine');
@@ -134,7 +138,7 @@ test.describe('Desktop Regression Master Suite', () => {
     const act7Start = Date.now();
     try {
       console.log('>>> [Desktop Master] Starting Activity 7: Share Review (Ayur Shampoo)');
-      const shareRes = await desktopShareReview(page, ayurReviewUrl, 'talhamshaikh0102@gmail.com');
+      const shareRes = await desktopShareReview(page, ayurReviewUrl, 'talhamshaikh0102@gmail.com', registeredUserId);
       reporter.recordStep(
         'Activity 7: Share Ayur Shampoo Review & Redirection Verification',
         'Desktop',

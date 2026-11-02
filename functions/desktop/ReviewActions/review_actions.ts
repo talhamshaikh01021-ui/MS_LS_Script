@@ -3,12 +3,18 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { DESKTOP_BASE_URL, TEST_DATA } from '../../../utils/config.js';
+import { fetchRrKeyAndUrlByUserId, findOtherUserReviewCard } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'review_actions_xpath.json'), 'utf8'));
 
-export async function desktopReviewActions(page: Page, reviewUrl?: string, productKey: 'squash' | 'ayur' = 'squash'): Promise<boolean> {
+export async function desktopReviewActions(
+  page: Page,
+  reviewUrl?: string,
+  productKey: 'squash' | 'ayur' = 'squash',
+  userId?: string
+): Promise<boolean> {
   const prodData = productKey === 'ayur' ? TEST_DATA.review_data!.ayur : TEST_DATA.review_data!.squash;
   const prodTitle = prodData.title;
   const prodContent = prodData.content;
@@ -193,8 +199,14 @@ export async function desktopReviewActions(page: Page, reviewUrl?: string, produ
   const cardCount = await reviewCards.count();
   console.log(`[Desktop ReviewActions] Found ${cardCount} review cards on ${prodName} RAR page.`);
 
-  // Own review card is card 0 (newly posted) or card with matching user/title
-  const ownCard = reviewCards.first();
+  // Own review card: locate by registered User ID instead of assuming card 0 is the newly posted review
+  const registeredUserId = userId || TEST_DATA.desktop_test_data.MSID;
+  console.log(`[Desktop ReviewActions] Locating own review card for registered User ID: ${registeredUserId}...`);
+  const userRev = await fetchRrKeyAndUrlByUserId(page, {
+    userId: registeredUserId,
+    baseUrl: DESKTOP_BASE_URL
+  });
+  const ownCard = userRev.card || reviewCards.first();
 
   // 5. Rate own review from RAR & verify platform does not allow rating own review
   console.log('[Desktop ReviewActions] 3/8: Rating own review from RAR (verifying platform restricts self-rating)...');
@@ -238,8 +250,10 @@ export async function desktopReviewActions(page: Page, reviewUrl?: string, produ
     console.warn(`[Desktop ReviewActions] Error commenting on own review from RAR: ${e.message}`);
   }
 
-  // Identify other user's review card (card 1 if available, otherwise card with different author)
-  const otherCard = cardCount > 1 ? reviewCards.nth(1) : reviewCards.first();
+  // Identify other user's review card (card belonging to a user other than registered User ID)
+  console.log(`[Desktop ReviewActions] Finding review card for another user (not ${registeredUserId})...`);
+  const otherCardFound = await findOtherUserReviewCard(page, registeredUserId);
+  const otherCard = otherCardFound || (cardCount > 1 ? reviewCards.nth(1) : reviewCards.first());
 
   // 7. Rate other's review from RAR (verify platform allows rating other's review)
   console.log('[Desktop ReviewActions] 5/8: Rating other user review from RAR (verifying rating allowed)...');

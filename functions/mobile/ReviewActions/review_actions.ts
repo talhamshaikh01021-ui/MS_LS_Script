@@ -3,12 +3,18 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MOBILE_BASE_URL, TEST_DATA } from '../../../utils/config.js';
+import { fetchRrKeyAndUrlByUserId, findOtherUserReviewCard } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'review_actions_xpath.json'), 'utf8'));
 
-export async function mobileReviewActions(page: Page, reviewUrl?: string, productKey: 'squash' | 'ayur' = 'squash'): Promise<boolean> {
+export async function mobileReviewActions(
+  page: Page,
+  reviewUrl?: string,
+  productKey: 'squash' | 'ayur' = 'squash',
+  userId?: string
+): Promise<boolean> {
   const prodData = productKey === 'ayur' ? TEST_DATA.review_data!.ayur : TEST_DATA.review_data!.squash;
   const prodTitle = prodData.title;
   const prodContent = prodData.content;
@@ -162,57 +168,48 @@ export async function mobileReviewActions(page: Page, reviewUrl?: string, produc
   }
   await page.bringToFront().catch(() => { });
 
-  // // 6. Find another user's review on RAR & navigate to their RR page
-  // console.log("[Mobile ReviewActions] 4/4: Locating another user's review on RAR to perform rating & comment...");
-  // const cards = page.locator(".review-holder, .review-article");
-  // const cardCount = await cards.count();
-  // console.log(`[Mobile ReviewActions] Found ${cardCount} review cards on RAR.`);
+  // 6. Find another user's review on RAR & navigate to their RR page
+  const registeredUserId = userId || TEST_DATA.mobile_test_data.MSID;
+  console.log(`[Mobile ReviewActions] 4/4: Locating another user's review on RAR (not "${registeredUserId}")...`);
+  const cards = page.locator(".review-holder, .review-article");
+  const cardCount = await cards.count();
+  console.log(`[Mobile ReviewActions] Found ${cardCount} review cards on RAR.`);
 
-  // let otherCardIndex = 1; // card 1 is another user's review (card 0 is newly posted review)
-  // if (cardCount > 1) {
-  //   const card1Text = await cards.nth(1).innerText().catch(() => '');
-  //   if (card1Text.includes(TEST_DATA.mobile_test_data.name) && cardCount > 2) {
-  //     otherCardIndex = 2;
-  //   }
-  // } else {
-  //   otherCardIndex = 0;
-  // }
+  const otherCard = (await findOtherUserReviewCard(page, registeredUserId)) || cards.first();
+  console.log('[Mobile ReviewActions] Selected other user review card...');
 
-  // const otherCard = cards.nth(otherCardIndex);
-  // console.log(`[Mobile ReviewActions] Selected other user review card at index ${otherCardIndex}...`);
+  // On mobile RAR, clicking on the like/comment or title navigates to that review's RR page
+  const otherLink = otherCard.locator(".useful-not-very a, a.title, a[href*='/review/']:not([href*='writereview'])").first();
+  const otherHref = await otherLink.getAttribute('href').catch(() => null);
+  console.log('[Mobile ReviewActions] Opening other user review from RAR via link:', otherHref);
 
-  // // On mobile RAR, clicking on the like/comment or title navigates to that review's RR page
-  // const otherLink = otherCard.locator(".useful-not-very a, a.title, a[href*='/review/']:not([href*='writereview'])").first();
-  // const otherHref = await otherLink.getAttribute('href').catch(() => null);
-  // console.log('[Mobile ReviewActions] Opening other user review from RAR via link:', otherHref);
+  await otherLink.scrollIntoViewIfNeeded().catch(() => {});
+  await otherLink.click().catch(async () => {
+    if (otherHref && otherHref.includes('/review/')) {
+      const fullUrl = otherHref.startsWith('http') ? otherHref : `${MOBILE_BASE_URL}${otherHref}`;
+      await page.goto(fullUrl, { waitUntil: 'domcontentloaded' });
+    }
+  });
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+  await page.waitForTimeout(2500);
 
-  // await otherLink.scrollIntoViewIfNeeded().catch(() => {});
-  // await otherLink.click().catch(async () => {
-  //   if (otherHref && otherHref.includes('/review/')) {
-  //     const fullUrl = otherHref.startsWith('http') ? otherHref : `${MOBILE_BASE_URL}${otherHref}`;
-  //     await page.goto(fullUrl, { waitUntil: 'domcontentloaded' });
-  //   }
-  // });
-  // await page.waitForLoadState('domcontentloaded').catch(() => {});
-  // await page.waitForTimeout(2500);
+  // If still on RAR, navigate directly to other user's review URL
+  if (!page.url().includes('/review/') || page.url().includes('-reviews-')) {
+    if (otherHref && otherHref.includes('/review/')) {
+      const fullUrl = otherHref.startsWith('http') ? otherHref : `${MOBILE_BASE_URL}${otherHref}`;
+      await page.goto(fullUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await page.waitForTimeout(2000);
+    }
+  }
 
-  // // If still on RAR, navigate directly to other user's review URL
-  // if (!page.url().includes('/review/') || page.url().includes('-reviews-')) {
-  //   if (otherHref && otherHref.includes('/review/')) {
-  //     const fullUrl = otherHref.startsWith('http') ? otherHref : `${MOBILE_BASE_URL}${otherHref}`;
-  //     await page.goto(fullUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
-  //     await page.waitForTimeout(2000);
-  //   }
-  // }
+  // Ensure single tab
+  const pgsOther = page.context().pages();
+  for (let i = pgsOther.length - 1; i > 0; i--) {
+    if (pgsOther[i] !== page) await pgsOther[i].close().catch(() => {});
+  }
+  await page.bringToFront().catch(() => {});
 
-  // // Ensure single tab
-  // const pgsOther = page.context().pages();
-  // for (let i = pgsOther.length - 1; i > 0; i--) {
-  //   if (pgsOther[i] !== page) await pgsOther[i].close().catch(() => {});
-  // }
-  // await page.bringToFront().catch(() => {});
-
-  // console.log(`[Mobile ReviewActions] Currently on another user review RR page: ${page.url()}`);
+  console.log(`[Mobile ReviewActions] Currently on another user review RR page: ${page.url()}`);
 
   // 7. Perform rating on another's review & verify rating is allowed
   console.log("[Mobile ReviewActions] Performing rating on another user's review (verifying rating is allowed)...");

@@ -8,6 +8,8 @@
     "test:desktop": "playwright test --project=\"Desktop Master Suite\"",
     "test:mobile": "playwright test --project=\"Mobile Master Suite\"",
     "test:share": "playwright test --project=\"Share Review Suite\"",
+    "test:cleanup": "playwright test --project=\"Cleanup Suite\"",
+    "test:all": "playwright test",
     "report": "playwright show-report"
   },
   "keywords": [],

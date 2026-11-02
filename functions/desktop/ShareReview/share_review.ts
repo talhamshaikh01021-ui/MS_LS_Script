@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { DESKTOP_BASE_URL, TEST_DATA } from '../../../utils/config.js';
 import { fetchSharedReviewEmail } from '../../../utils/email_helper.js';
+import { extractRrKey, fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,23 +31,37 @@ export interface ShareReviewResult {
 export async function desktopShareReview(
   page: Page,
   reviewUrl?: string,
-  targetEmail: string = 'talhamshaikh0102@gmail.com'
+  targetEmail: string = 'talhamshaikh0102@gmail.com',
+  userId?: string
 ): Promise<ShareReviewResult> {
-  console.log(`[Desktop ShareReview] Starting Share Review Activity for Ayur Shampoo to: ${targetEmail}`);
+  const registeredUserId = userId || TEST_DATA.desktop_test_data.MSID;
+  console.log(`[Desktop ShareReview] Starting Share Review Activity for Ayur Shampoo to: ${targetEmail} (Registered User ID: ${registeredUserId})`);
 
   // 1. Ensure on Ayur Shampoo review page
   let targetReviewUrl = reviewUrl;
-  if (!targetReviewUrl || !targetReviewUrl.includes('/review/')) {
-    // If no valid review URL passed, navigate to Ayur Shampoo RAR to pick a review
-    console.log('[Desktop ShareReview] Navigating to Ayur Shampoo RAR to locate review for sharing...');
-    await page.goto(`${DESKTOP_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
+  let rid = '';
 
-    const firstRevLink = page.locator("a[href*='/review/']:not([href*='writereview']):not([href*='error'])").first();
-    const href = await firstRevLink.getAttribute('href').catch(() => null);
-    if (href) {
-      targetReviewUrl = href.startsWith('http') ? href : `${DESKTOP_BASE_URL}${href}`;
+  if (targetReviewUrl && targetReviewUrl.includes('/review/') && !targetReviewUrl.endsWith('-review-')) {
+    rid = extractRrKey(targetReviewUrl) || '';
+  }
+
+  // If no valid review URL or RR key passed, get RR key and URL from the review with the registered User ID on RAR (not first review)
+  if (!rid || !targetReviewUrl || !targetReviewUrl.includes('/review/') || targetReviewUrl.endsWith('-review-')) {
+    console.log(`[Desktop ShareReview] Fetching RR key from Ayur Shampoo RAR for registered User ID: ${registeredUserId}...`);
+    const rarUrl = `${DESKTOP_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: DESKTOP_BASE_URL,
+      rarUrl
+    });
+
+    if (userRev.rrKey) {
+      rid = userRev.rrKey;
+      targetReviewUrl = userRev.reviewUrl || `${DESKTOP_BASE_URL}/review/ayur-shampoo-review-${rid}`;
+      console.log(`[Desktop ShareReview] Successfully fetched RR key from registered User ID: ${rid}`);
     } else {
+      console.warn(`[Desktop ShareReview] Review for registered User ID "${registeredUserId}" not found on RAR; using fallback.`);
+      rid = 'sqqsntmqoop';
       targetReviewUrl = `${DESKTOP_BASE_URL}/review/ayur-shampoo-review-sqqsntmqoop`;
     }
   }
@@ -64,10 +79,11 @@ export async function desktopShareReview(
   }
   await page.bringToFront().catch(() => {});
 
-  // Extract review id (rid) from current URL or page
-  const ridMatch = page.url().match(/(?:review-|rid=)([a-zA-Z0-9]+)/);
-  const rid = ridMatch ? ridMatch[1] : 'sqqsntmqoop';
-  console.log(`[Desktop ShareReview] Review ID for sharing: ${rid}`);
+  // Extract review id (rid / RR key) from current URL or page if still missing
+  if (!rid) {
+    rid = extractRrKey(page.url()) || 'sqqsntmqoop';
+  }
+  console.log(`[Desktop ShareReview] Review ID (RR key) for sharing: ${rid}`);
 
   // 2. Click Share button on Desktop RR
   console.log('[Desktop ShareReview] Clicking Share button on Desktop review page...');

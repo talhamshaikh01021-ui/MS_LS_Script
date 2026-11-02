@@ -2,8 +2,10 @@ name: MouthShut Regression Automation & Live Status Report
 
 on:
   schedule:
-    # Run daily at 04:00 UTC (09:30 AM IST)
-    - cron: '0 4 * * *'
+    # 09:00 AM IST (03:30 AM UTC)
+    - cron: '30 3 * * *'
+    # 06:00 PM IST (12:30 PM UTC)
+    - cron: '30 12 * * *'
   workflow_dispatch:
     inputs:
       suite:
@@ -74,9 +76,9 @@ jobs:
           MOBILE_APP_PASSWORD: ${{ secrets.MOBILE_APP_PASSWORD }}
           MOBILE_MSID: ${{ secrets.MOBILE_MSID }}
           MOBILE_PASSWORD: ${{ secrets.MOBILE_PASSWORD }}
-          REPORT_SENDER_EMAIL: ${{ secrets.REPORT_SENDER_EMAIL }}
+          REPORT_SENDER_EMAIL: ${{ secrets.REPORT_SENDER_EMAIL || 'testing_group@mouthshut.com' }}
           REPORT_SENDER_PASSWORD: ${{ secrets.REPORT_SENDER_PASSWORD }}
-          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS || 'Live_Status@mouthshut.com' }}
         run: |
           SUITE="${{ github.event.inputs.suite || 'all' }}"
           echo "Executing suite: $SUITE"

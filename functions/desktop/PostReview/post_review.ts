@@ -5,13 +5,16 @@ import { fileURLToPath } from 'url';
 import { DESKTOP_BASE_URL, TEST_DATA, ROOT_DIR } from '../../../utils/config.js';
 import { fillWarExtraFields } from '../../../utils/war_helper.js';
 import { ensureDesktopLoggedIn } from '../Registration/registration.js';
+import { dismissContestBannerIfVisible } from '../../../utils/contest_banner.js';
+import { fetchRrKeyAndUrlByUserId } from '../../../utils/review_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const xpaths = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'post_review_xpath.json'), 'utf8'));
 
-export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string }> {
-  console.log('[Desktop PostReview] Starting review submission for Squash...');
+export async function desktopPostReview(page: Page, userId?: string): Promise<{ reviewUrl: string }> {
+  const registeredUserId = userId || TEST_DATA.desktop_test_data.MSID;
+  console.log(`[Desktop PostReview] Starting review submission for Squash (Registered User ID: ${registeredUserId})...`);
 
   // Ensure active authenticated session
   await ensureDesktopLoggedIn(page);
@@ -80,23 +83,26 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
   }
   await page.waitForTimeout(2500);
 
-  // 4. Genuine overlay check: "tap once on the screen because an image will cover the screen that tells user that keep your review genuine"
-  console.log('[Desktop PostReview] Dismissing genuine overlay if present...');
+  // 4. Genuine overlay check & contest banner dismissal
+  console.log('[Desktop PostReview] Dismissing genuine overlay & contest banner if present...');
+  await dismissContestBannerIfVisible(page);
   try {
     const closeOverlayBtn = page.locator(".surveylayer .close, .black-layer .close, #imgWARPopUp ~ .close, a:has-text('Close')").first();
     if (await closeOverlayBtn.isVisible().catch(() => false)) {
       await closeOverlayBtn.click().catch(() => { });
     }
     await page.evaluate(() => {
-      document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"]').forEach(el => {
+      document.querySelectorAll('.surveylayer, .black-layer, .imgWARPopUp, .imgPastePrevent, #imgWARPopUp, #imgPastePrevent, [class*="genuine"], #ms-contest-idle-popup').forEach(el => {
         if (!el.classList.contains('signup-container') && !el.classList.contains('login') && !el.classList.contains('otp')) {
           (el as HTMLElement).style.display = 'none';
         }
       });
+      document.body.style.overflow = '';
     }).catch(() => { });
   } catch (e) {
     console.log('[Desktop PostReview] No genuine overlay to dismiss.');
   }
+  await dismissContestBannerIfVisible(page);
   await page.waitForTimeout(1000);
 
   // 5. Star Rating: give two star rating (2 stars)
@@ -307,17 +313,28 @@ export async function desktopPostReview(page: Page): Promise<{ reviewUrl: string
     console.warn('[Desktop PostReview] "your review" link was not found on thank you page.');
   }
 
-  // Safety fallback: if on thankyou or error page, recover by finding user review from Squash RAR page
-  if (page.url().includes('thankyou') || page.url().includes('error.php') || page.url().endsWith('-review-')) {
-    console.warn('[Desktop PostReview] Recovering from invalid URL, navigating to Squash RAR to locate review...');
-    await page.goto(`${DESKTOP_BASE_URL}/product-reviews/squash-reviews-925004658`, { waitUntil: 'domcontentloaded' }).catch(() => { });
-    await page.waitForTimeout(2000);
-    const ownReviewLink = page.locator("a").filter({ hasText: TEST_DATA.review_data!.squash.title }).first();
-    if (await ownReviewLink.isVisible().catch(() => false)) {
-      console.log('[Desktop PostReview] Found review link on RAR page, clicking through to RR page...');
-      await ownReviewLink.click();
-      await page.waitForLoadState('domcontentloaded').catch(() => { });
+  // Safety fallback: if on thankyou or error page, recover by finding user review from Squash RAR page using registered User ID
+  if (page.url().includes('thankyou') || page.url().includes('error.php') || page.url().endsWith('-review-') || page.url().includes('-reviews-')) {
+    console.warn('[Desktop PostReview] Not on specific RR page, navigating to Squash RAR to locate review for registered User ID:', registeredUserId);
+    const rarUrl = `${DESKTOP_BASE_URL}/product-reviews/squash-reviews-925004658`;
+    const userRev = await fetchRrKeyAndUrlByUserId(page, {
+      userId: registeredUserId,
+      baseUrl: DESKTOP_BASE_URL,
+      rarUrl
+    });
+
+    if (userRev.reviewUrl) {
+      console.log('[Desktop PostReview] Found review link on RAR page for registered User ID, clicking through to RR page:', userRev.reviewUrl);
+      await page.goto(userRev.reviewUrl, { waitUntil: 'domcontentloaded' }).catch(() => { });
       await page.waitForTimeout(2000);
+    } else {
+      const ownReviewLink = page.locator("a").filter({ hasText: TEST_DATA.review_data!.squash.title }).first();
+      if (await ownReviewLink.isVisible().catch(() => false)) {
+        console.log('[Desktop PostReview] Found review link on RAR page by title, clicking through to RR page...');
+        await ownReviewLink.click();
+        await page.waitForLoadState('domcontentloaded').catch(() => { });
+        await page.waitForTimeout(2000);
+      }
     }
   }
 
