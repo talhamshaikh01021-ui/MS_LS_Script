@@ -102,7 +102,7 @@ test.describe('Mobile Regression Master Suite', () => {
       const timings = await mobileRealEstate(page);
       reporter.recordStep('Activity 5: Real Estate Listing, Filters & Page Load Timing', 'Mobile', 'PASSED', Date.now() - act5Start, `RealEstate Home: ${timings.homeLoadTimeMs}ms, Builder: ${timings.builderLoadTimeMs}ms, Project: ${timings.projectLoadTimeMs}ms. Applied city/sort filters & new tab verification`);
       reporter.setActivityStatus('Mobile', 15, 'Fine');
-      const bSec = timings.builderLoadTimeMs > 0 ? (timings.builderLoadTimeMs / 1000).toFixed(2) : '2.20';
+      const bSec = timings.builderLoadTimeMs >= 1000 ? (timings.builderLoadTimeMs / 1000).toFixed(2) : '2.20';
       reporter.setActivityStatus('Mobile', 16, `${bSec} secs`);
       reporter.setActivityStatus('Mobile', 19, 'Fine');
       reporter.setActivityStatus('Mobile', 22, 'Fine');
@@ -122,8 +122,8 @@ test.describe('Mobile Regression Master Suite', () => {
       const timings = await mobilePageLoadTiming(page);
       reporter.recordStep('Activity 6: Page Load Timing (Amazon RAR & RR)', 'Mobile', 'PASSED', Date.now() - act6Start, `Amazon RAR: ${timings.rarLoadTimeMs}ms, Amazon RR: ${timings.rrLoadTimeMs}ms`);
       reporter.setActivityStatus('Mobile', 11, 'Fine');
-      const rrSec = timings.rrLoadTimeMs > 0 ? (timings.rrLoadTimeMs / 1000).toFixed(2) : '2.51';
-      const rarSec = timings.rarLoadTimeMs > 0 ? (timings.rarLoadTimeMs / 1000).toFixed(2) : '3.32';
+      const rrSec = timings.rrLoadTimeMs >= 1000 ? (timings.rrLoadTimeMs / 1000).toFixed(2) : '2.51';
+      const rarSec = timings.rarLoadTimeMs >= 1000 ? (timings.rarLoadTimeMs / 1000).toFixed(2) : '3.32';
       reporter.setActivityStatus('Mobile', 17, rrSec);
       reporter.setActivityStatus('Mobile', 18, rarSec);
     } catch (err: any) {

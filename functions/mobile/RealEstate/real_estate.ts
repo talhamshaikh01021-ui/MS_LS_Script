@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { MOBILE_BASE_URL } from '../../../utils/config.js';
 import { RegressionReporter } from '../../../utils/reporter.js';
+import { measureFullPageLoad } from '../../../utils/pageload_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,21 +20,17 @@ export async function mobileRealEstate(page: Page): Promise<RealEstateTimings> {
   console.log('[Mobile RealEstate] Starting mobile Real Estate listing, filter & page load timing activities...');
   const reporter = RegressionReporter.getInstance();
 
-  // 1. Measure and record page load time of Real Estate Home
-  console.log('[Mobile RealEstate] Navigating to Real Estate Home to measure page load time...');
-  const homeStartTime = Date.now();
-  await page.goto(`${MOBILE_BASE_URL}/realestate`, { waitUntil: 'domcontentloaded' });
-  const homeLoadTimeMs = Date.now() - homeStartTime;
-  console.log(`[Mobile RealEstate] Real Estate Home Page Load Time: ${homeLoadTimeMs}ms (URL: ${page.url()})`);
+  // 1. Measure and record full page load time of Real Estate Home (document, scripts, stylesheets, and images)
+  console.log('[Mobile RealEstate] Navigating to Real Estate Home to measure full page load time...');
+  const homeLoadTimeMs = await measureFullPageLoad(page, `${MOBILE_BASE_URL}/realestate`);
+  console.log(`[Mobile RealEstate] Real Estate Home Page Load Time: ${homeLoadTimeMs}ms (${(homeLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Home Page', 'Mobile', page.url(), homeLoadTimeMs);
   await page.waitForTimeout(1500);
 
-  // 2. Measure and record page load time of Builders & Developers
-  console.log('[Mobile RealEstate] Navigating to Builders & Developers to measure page load time...');
-  const builderStartTime = Date.now();
-  await page.goto(`${MOBILE_BASE_URL}/builders-and-developers`, { waitUntil: 'domcontentloaded' });
-  const builderLoadTimeMs = Date.now() - builderStartTime;
-  console.log(`[Mobile RealEstate] Real Estate Builder Page Load Time: ${builderLoadTimeMs}ms (URL: ${page.url()})`);
+  // 2. Measure and record full page load time of Builders & Developers
+  console.log('[Mobile RealEstate] Navigating to Builders & Developers to measure full page load time...');
+  const builderLoadTimeMs = await measureFullPageLoad(page, `${MOBILE_BASE_URL}/builders-and-developers`);
+  console.log(`[Mobile RealEstate] Real Estate Builder Page Load Time: ${builderLoadTimeMs}ms (${(builderLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Builder Page', 'Mobile', page.url(), builderLoadTimeMs);
   await page.waitForTimeout(1500);
 
@@ -68,30 +65,35 @@ export async function mobileRealEstate(page: Page): Promise<RealEstateTimings> {
 
   // 3b. City filter: Open Filters drawer, select city, click Apply
   try {
-    const filterBtn = page.locator(xpaths.mobileFiltersButton).first();
+    const filterBtn = page.locator(xpaths.mobileFilterButton).first();
     if (await filterBtn.isVisible().catch(() => false)) {
-      console.log('[Mobile RealEstate] Opening Filters drawer...');
+      console.log('[Mobile RealEstate] Opening mobile Filters drawer...');
       await filterBtn.click();
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(1000);
 
-      const cityOpt = page.locator(xpaths.cityOptionAhmedabad + ', ' + xpaths.cityOptionMumbai).first();
-      if (await cityOpt.isVisible().catch(() => false)) {
-        console.log('[Mobile RealEstate] Selecting city filter...');
-        await cityOpt.click();
-        await page.waitForTimeout(500);
+      const cityHeader = page.locator(xpaths.filterCityTab).first();
+      if (await cityHeader.isVisible().catch(() => false)) {
+        await cityHeader.click();
+        await page.waitForTimeout(600);
       }
 
-      const applyBtn = page.locator(xpaths.applyFilterButton).first();
+      const cityOpt = page.locator(xpaths.filterCityOption).first();
+      if (await cityOpt.isVisible().catch(() => false)) {
+        console.log('[Mobile RealEstate] Selecting City in filters...');
+        await cityOpt.click();
+        await page.waitForTimeout(600);
+      }
+
+      const applyBtn = page.locator(xpaths.filterApplyButton).first();
       if (await applyBtn.isVisible().catch(() => false)) {
-        console.log('[Mobile RealEstate] Clicking Apply filter button...');
+        console.log('[Mobile RealEstate] Applying filters...');
         await applyBtn.click();
         await page.waitForTimeout(2000);
       }
     } else {
-      // Fallback for select dropdown if present
       const citySelect = page.locator(xpaths.cityFilterSelect).first();
       if (await citySelect.isVisible().catch(() => false)) {
-        await citySelect.selectOption({ label: 'Mumbai' }).catch(() => citySelect.selectOption({ index: 1 }));
+        await citySelect.selectOption({ label: 'Ahmedabad' }).catch(() => citySelect.selectOption({ index: 2 }));
         await page.waitForTimeout(2000);
       }
     }
@@ -136,12 +138,10 @@ export async function mobileRealEstate(page: Page): Promise<RealEstateTimings> {
 
   await page.bringToFront();
 
-  // 5. Measure and record page load time of Real Estate Projects
-  console.log('[Mobile RealEstate] Navigating to Projects to measure page load time...');
-  const projectStartTime = Date.now();
-  await page.goto(`${MOBILE_BASE_URL}/projects`, { waitUntil: 'domcontentloaded' });
-  const projectLoadTimeMs = Date.now() - projectStartTime;
-  console.log(`[Mobile RealEstate] Real Estate Project Page Load Time: ${projectLoadTimeMs}ms (URL: ${page.url()})`);
+  // 5. Measure and record full page load time of Real Estate Projects
+  console.log('[Mobile RealEstate] Navigating to Projects to measure full page load time...');
+  const projectLoadTimeMs = await measureFullPageLoad(page, `${MOBILE_BASE_URL}/projects`);
+  console.log(`[Mobile RealEstate] Real Estate Project Page Load Time: ${projectLoadTimeMs}ms (${(projectLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Project Page', 'Mobile', page.url(), projectLoadTimeMs);
   await page.waitForTimeout(1500);
 

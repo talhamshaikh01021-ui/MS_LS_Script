@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { MOBILE_BASE_URL, TEST_DATA } from '../../../utils/config.js';
 import { RegressionReporter } from '../../../utils/reporter.js';
+import { measureFullPageLoad } from '../../../utils/pageload_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,12 +30,12 @@ export async function mobilePageLoadTiming(page: Page): Promise<{
   await searchInput.pressSequentially(TEST_DATA.review_data!.amazon.search_term, { delay: 100 });
   await page.waitForTimeout(2000);
 
-  // 3. Click on Amazon product (avoiding Mobile Phones, selecting Amazon Online Shopping)
+  // 3. Select Amazon Online Shopping to measure RAR pageload time
   console.log('[Mobile PageLoadTiming] Selecting Amazon (Online Shopping) to measure RAR pageload time...');
   const suggestions = page.locator(xpaths.amazonSuggestion || 'ul.ui-autocomplete li a, .ui-menu-item a');
   const sugCount = await suggestions.count();
-  let clicked = false;
-  let rarStartTime = Date.now();
+  let rarTargetUrl = `${MOBILE_BASE_URL}/product-reviews/amazon-reviews-925000493`;
+  let found = false;
 
   if (sugCount > 0) {
     for (let i = 0; i < sugCount; i++) {
@@ -42,90 +43,57 @@ export async function mobilePageLoadTiming(page: Page): Promise<{
       const text = (await sug.innerText().catch(() => '')).replace(/\s+/g, ' ');
       // Explicit requirement: do not select amazon in mobile phones, select amazon online shopping
       if (!/Mobile Phones/i.test(text) && (/Online Shopping/i.test(text) || /^Amazon/i.test(text))) {
-        console.log(`[Mobile PageLoadTiming] Clicking Mobile suggestion: "${text}"`);
-        rarStartTime = Date.now();
-        await Promise.all([
-          page.waitForLoadState('domcontentloaded'),
-          sug.click()
-        ]);
-        clicked = true;
+        console.log(`[Mobile PageLoadTiming] Found Mobile suggestion: "${text}"`);
+        const href = await sug.getAttribute('href').catch(() => null);
+        if (href) {
+          rarTargetUrl = href.startsWith('http') ? href : `${MOBILE_BASE_URL}${href}`;
+        }
+        found = true;
         break;
       }
     }
   }
 
-  if (!clicked) {
+  if (!found) {
     const amazonLink = page.locator(xpaths.amazonSearchResult)
       .filter({ hasNotText: /Mobile Phones/i })
       .first();
 
     if (await amazonLink.isVisible().catch(() => false)) {
-      console.log('[Mobile PageLoadTiming] Clicking Amazon search result link...');
-      rarStartTime = Date.now();
-      await Promise.all([
-        page.waitForLoadState('domcontentloaded'),
-        amazonLink.click()
-      ]);
-    } else {
-      console.log('[Mobile PageLoadTiming] Direct navigation fallback to Amazon Online Shopping RAR...');
-      rarStartTime = Date.now();
-      await page.goto(`${MOBILE_BASE_URL}/product-reviews/amazon-reviews-925000493`, { waitUntil: 'domcontentloaded' });
+      console.log('[Mobile PageLoadTiming] Found Amazon search result link...');
+      const href = await amazonLink.getAttribute('href').catch(() => null);
+      if (href) {
+        rarTargetUrl = href.startsWith('http') ? href : `${MOBILE_BASE_URL}${href}`;
+      }
     }
   }
 
-  // If landed on category listing (e.g. online-shopping?cid=925153...), click the Amazon product link to reach RAR
-  if (page.url().includes('online-shopping') && !page.url().includes('product-reviews')) {
-    console.log('[Mobile PageLoadTiming] On Online Shopping listing; clicking Amazon product link...');
-    const prodLink = page.locator("a.product-name:has-text('Amazon'), a[href*='amazon-reviews']").first();
-    if (await prodLink.isVisible().catch(() => false)) {
-      rarStartTime = Date.now();
-      await Promise.all([
-        page.waitForLoadState('domcontentloaded'),
-        prodLink.click()
-      ]);
-    }
-  }
-
-  const rarEndTime = Date.now();
-  const rarLoadTimeMs = rarEndTime - rarStartTime;
-
-  console.log(`[Mobile PageLoadTiming] Amazon RAR Page Load Time: ${rarLoadTimeMs}ms (URL: ${page.url()})`);
+  // Navigate to Amazon RAR and measure full page load time (document, stylesheets, scripts, and all images)
+  console.log(`[Mobile PageLoadTiming] Measuring Mobile Amazon RAR Page Load Time: ${rarTargetUrl}`);
+  const rarLoadTimeMs = await measureFullPageLoad(page, rarTargetUrl);
+  console.log(`[Mobile PageLoadTiming] Mobile Amazon RAR Page Load Time: ${rarLoadTimeMs}ms (${(rarLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Amazon RAR Page', 'Mobile', page.url(), rarLoadTimeMs);
 
-  // 4. Click on review -> redirect to RR page, note pageload time
-  console.log('[Mobile PageLoadTiming] Clicking on review to measure RR pageload time...');
-  await page.waitForTimeout(2000);
+  // 4. Locate review on mobile RAR -> navigate to RR page and measure full page load time
+  console.log('[Mobile PageLoadTiming] Locating review on mobile RAR to measure RR pageload time...');
+  await page.waitForTimeout(1000);
 
   // Scroll down like a human to trigger lazy loading of review cards
-  await page.evaluate(() => window.scrollTo(0, 1200));
+  await page.evaluate(() => window.scrollBy(0, 1000));
   await page.waitForTimeout(1500);
 
-  const reviewLink = page.locator(xpaths.reviewLinkOnRar).first();
-  let rrLoadTimeMs = 0;
-
-  if (await reviewLink.isVisible().catch(() => false)) {
-    const rrStartTime = Date.now();
-    await Promise.all([
-      page.waitForLoadState('domcontentloaded'),
-      reviewLink.click()
-    ]);
-    const rrEndTime = Date.now();
-    rrLoadTimeMs = rrEndTime - rrStartTime;
-    console.log(`[Mobile PageLoadTiming] Amazon RR Page Load Time: ${rrLoadTimeMs}ms (URL: ${page.url()})`);
-    reporter.recordPageLoad('Amazon RR Page', 'Mobile', page.url(), rrLoadTimeMs);
-  } else {
-    console.log('[Mobile PageLoadTiming] Attempting fallback review link...');
-    const fallbackLink = page.locator("//a[contains(@href,'/review/') and not(contains(@href,'writereview'))]").first();
-    if (await fallbackLink.isVisible().catch(() => false)) {
-      const rrStartTime = Date.now();
-      await Promise.all([
-        page.waitForLoadState('domcontentloaded'),
-        fallbackLink.click()
-      ]);
-      rrLoadTimeMs = Date.now() - rrStartTime;
-      reporter.recordPageLoad('Amazon RR Page', 'Mobile', page.url(), rrLoadTimeMs);
-    }
+  const reviewLink = page.locator("a.title, .review-heading a.title, a[href*='/review/amazon-review-'], //a[contains(@href,'/review/') and not(contains(@href,'writereview'))]").first();
+  await reviewLink.waitFor({ state: 'visible', timeout: 15000 });
+  const reviewHref = await reviewLink.getAttribute('href');
+  if (!reviewHref) {
+    throw new Error('Could not find review link on Mobile Amazon RAR page');
   }
+
+  const rrTargetUrl = reviewHref.startsWith('http') ? reviewHref : `${MOBILE_BASE_URL}${reviewHref}`;
+  console.log(`[Mobile PageLoadTiming] Measuring Mobile Amazon RR (Read Review) Page Load Time: ${rrTargetUrl}`);
+  const rrLoadTimeMs = await measureFullPageLoad(page, rrTargetUrl);
+  console.log(`[Mobile PageLoadTiming] Mobile Amazon RR Page Load Time: ${rrLoadTimeMs}ms (${(rrLoadTimeMs / 1000).toFixed(2)}s)`);
+  reporter.recordPageLoad('Amazon RR Page', 'Mobile', page.url(), rrLoadTimeMs);
 
   return { rarLoadTimeMs, rrLoadTimeMs };
 }

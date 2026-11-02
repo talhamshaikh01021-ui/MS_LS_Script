@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { DESKTOP_BASE_URL } from '../../../utils/config.js';
 import { RegressionReporter } from '../../../utils/reporter.js';
+import { measureFullPageLoad } from '../../../utils/pageload_helper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,28 +20,17 @@ export async function desktopRealEstate(page: Page): Promise<RealEstateTimings> 
   console.log('[Desktop RealEstate] Starting Real Estate listing, filter & page load timing activities...');
   const reporter = RegressionReporter.getInstance();
 
-  // 1. Measure and record page load time of Real Estate Home
-  console.log('[Desktop RealEstate] Navigating to Real Estate Home to measure page load time...');
-  const homeStartTime = Date.now();
-  await page.goto(`${DESKTOP_BASE_URL}/realestate`, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(async (e) => {
-    console.warn('[Desktop RealEstate] Realestate navigation warning, retrying once...', e.message);
-    await page.goto(`${DESKTOP_BASE_URL}/realestate`, { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
-  });
-  const homeLoadTimeMs = Date.now() - homeStartTime;
-  console.log(`[Desktop RealEstate] Real Estate Home Page Load Time: ${homeLoadTimeMs}ms (URL: ${page.url()})`);
+  // 1. Measure and record full page load time of Real Estate Home (document, scripts, stylesheets, and images)
+  console.log('[Desktop RealEstate] Navigating to Real Estate Home to measure full page load time...');
+  const homeLoadTimeMs = await measureFullPageLoad(page, `${DESKTOP_BASE_URL}/realestate`);
+  console.log(`[Desktop RealEstate] Real Estate Home Page Load Time: ${homeLoadTimeMs}ms (${(homeLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Home Page', 'Desktop', page.url(), homeLoadTimeMs);
   await page.waitForTimeout(1500);
 
-  // 2. Measure and record page load time of Builders & Developers
-  console.log('[Desktop RealEstate] Navigating to Builders & Developers to measure page load time...');
-  const builderStartTime = Date.now();
-  try {
-    await page.goto(`${DESKTOP_BASE_URL}/builders-and-developers`, { waitUntil: 'domcontentloaded', timeout: 35000 });
-  } catch (err: any) {
-    console.warn('[Desktop RealEstate] Direct navigation to /builders-and-developers timed out or failed:', err?.message);
-  }
-  const builderLoadTimeMs = Date.now() - builderStartTime;
-  console.log(`[Desktop RealEstate] Real Estate Builder Page Load Time: ${builderLoadTimeMs}ms (URL: ${page.url()})`);
+  // 2. Measure and record full page load time of Builders & Developers
+  console.log('[Desktop RealEstate] Navigating to Builders & Developers to measure full page load time...');
+  const builderLoadTimeMs = await measureFullPageLoad(page, `${DESKTOP_BASE_URL}/builders-and-developers`);
+  console.log(`[Desktop RealEstate] Real Estate Builder Page Load Time: ${builderLoadTimeMs}ms (${(builderLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Builder Page', 'Desktop', page.url(), builderLoadTimeMs);
   await page.waitForTimeout(1500);
 
@@ -93,16 +83,10 @@ export async function desktopRealEstate(page: Page): Promise<RealEstateTimings> 
 
   await page.bringToFront();
 
-  // 5. Measure and record page load time of Real Estate Projects
-  console.log('[Desktop RealEstate] Navigating to Projects to measure page load time...');
-  const projectStartTime = Date.now();
-  try {
-    await page.goto(`${DESKTOP_BASE_URL}/projects`, { waitUntil: 'domcontentloaded', timeout: 35000 });
-  } catch (err: any) {
-    console.warn('[Desktop RealEstate] Projects navigation timeout or error:', err?.message);
-  }
-  const projectLoadTimeMs = Date.now() - projectStartTime;
-  console.log(`[Desktop RealEstate] Real Estate Project Page Load Time: ${projectLoadTimeMs}ms (URL: ${page.url()})`);
+  // 5. Measure and record full page load time of Real Estate Projects
+  console.log('[Desktop RealEstate] Navigating to Projects to measure full page load time...');
+  const projectLoadTimeMs = await measureFullPageLoad(page, `${DESKTOP_BASE_URL}/projects`);
+  console.log(`[Desktop RealEstate] Real Estate Project Page Load Time: ${projectLoadTimeMs}ms (${(projectLoadTimeMs / 1000).toFixed(2)}s)`);
   reporter.recordPageLoad('Real Estate Project Page', 'Desktop', page.url(), projectLoadTimeMs);
   await page.waitForTimeout(1500);
 
