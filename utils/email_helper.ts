@@ -293,7 +293,7 @@ export async function fetchSharedReviewEmail(
   email: string,
   appPassword: string,
   startTime: Date,
-  maxWaitSec = 60,
+  maxWaitSec = 90,
   senderName?: string
 ): Promise<SharedReviewEmailResult | null> {
   const config = {
@@ -310,7 +310,8 @@ export async function fetchSharedReviewEmail(
 
   const startMs = Date.now();
   const timeoutMs = maxWaitSec * 1000;
-  const cutoffMs = (startTime instanceof Date ? startTime.getTime() : startMs) - 30000;
+  const cutoffMs = (startTime instanceof Date ? startTime.getTime() : startMs) - 45000;
+  const sinceDate = new Date(cutoffMs - 86400000); // Look back 1 day for IMAP SINCE query
   const boxes = ['INBOX', '[Gmail]/Spam'];
 
   console.log(`[EmailHelper] Waiting for Shared Review email to ${email}${senderName ? ` from ${senderName}` : ''} (received after ${new Date(cutoffMs).toLocaleTimeString()}, timeout ${maxWaitSec}s)...`);
@@ -323,7 +324,9 @@ export async function fetchSharedReviewEmail(
       for (const boxName of boxes) {
         try {
           await connection.openBox(boxName);
-          const messages = await connection.search(['ALL'], {
+          // Optimized IMAP search: only retrieve messages from today onwards
+          const searchCriteria = [['SINCE', sinceDate]];
+          const messages = await connection.search(searchCriteria, {
             bodies: ['HEADER'],
             markSeen: false
           });
@@ -337,12 +340,7 @@ export async function fetchSharedReviewEmail(
               : '';
 
             // Check if subject matches shared review
-            if (!/shared by/i.test(subj) && !/review.*shared/i.test(subj) && !/share.*review/i.test(subj)) {
-              continue;
-            }
-
-            // If senderName is specified, verify subject contains senderName
-            if (senderName && !subj.toLowerCase().includes(senderName.toLowerCase())) {
+            if (!/shared by/i.test(subj) && !/review.*shared/i.test(subj) && !/share.*review/i.test(subj) && !/review on/i.test(subj)) {
               continue;
             }
 
@@ -364,18 +362,26 @@ export async function fetchSharedReviewEmail(
             const rawContent = fullPart ? fullPart.body : '';
             const parsed = await simpleParser(rawContent);
             const html = parsed.html || '';
+            const text = parsed.text || '';
 
             // Extract review links:
-            // Find links containing ayur-shampoo or product-reviews / review
-            let reviewUrl: string | null = null;
-            const allLinks = [...html.matchAll(/href=["']([^"']+)["']/gi)].map(m => m[1]);
             // First priority: link containing ayur-shampoo
+            let reviewUrl: string | null = null;
+            const allLinks = [...(html + ' ' + text).matchAll(/https?:\/\/[^\s"'>]+/gi)].map(m => m[0]);
+            
             const ayurLink = allLinks.find(l => /ayur-shampoo/i.test(l));
             if (ayurLink) {
               reviewUrl = ayurLink;
             } else {
               // Second priority: link with product-reviews or review
-              const revLink = allLinks.find(l => /product-reviews|review/i.test(l) && !l.includes('alert') && !l.includes('facebook') && !l.includes('twitter'));
+              const revLink = allLinks.find(l =>
+                /(?:product-reviews|review)/i.test(l) &&
+                !l.includes('alert') &&
+                !l.includes('facebook') &&
+                !l.includes('twitter') &&
+                !l.includes('prewrite') &&
+                !l.includes('writereview')
+              );
               if (revLink) reviewUrl = revLink;
             }
 

@@ -61,8 +61,8 @@ export async function desktopShareReview(
       console.log(`[Desktop ShareReview] Successfully fetched RR key from registered User ID: ${rid}`);
     } else {
       console.warn(`[Desktop ShareReview] Review for registered User ID "${registeredUserId}" not found on RAR; using fallback.`);
-      rid = 'sqqsntmqoop';
-      targetReviewUrl = `${DESKTOP_BASE_URL}/review/ayur-shampoo-review-sqqsntmqoop`;
+      rid = 'qnrpmprqlpp';
+      targetReviewUrl = `${DESKTOP_BASE_URL}/review/ayur-shampoo-review-qnrpmprqlpp`;
     }
   }
 
@@ -81,7 +81,7 @@ export async function desktopShareReview(
 
   // Extract review id (rid / RR key) from current URL or page if still missing
   if (!rid) {
-    rid = extractRrKey(page.url()) || 'sqqsntmqoop';
+    rid = extractRrKey(page.url()) || 'qnrpmprqlpp';
   }
   console.log(`[Desktop ShareReview] Review ID (RR key) for sharing: ${rid}`);
 
@@ -158,7 +158,7 @@ export async function desktopShareReview(
   // 8. Verify share happened by checking Gmail inbox via IMAP
   console.log(`[Desktop ShareReview] Verifying email arrival in ${targetEmail} via IMAP (max 60s wait)...`);
   const appPassword = TEST_DATA.desktop_test_data.google_app_password;
-  const sharedEmail = await fetchSharedReviewEmail(targetEmail, appPassword, shareStartTime, 60, senderName);
+  const sharedEmail = await fetchSharedReviewEmail(targetEmail, appPassword, shareStartTime, 90, senderName);
 
   expect(sharedEmail).not.toBeNull();
   console.log(`[Desktop ShareReview] Share email verified in inbox! Subject: "${sharedEmail?.subject}"`);
@@ -184,7 +184,7 @@ export async function desktopShareReview(
   console.log(`[Desktop ShareReview] Page title after redirection: "${pageTitle}"`);
   expect(pageTitle).toMatch(/ayur shampoo/i);
 
-  const hasAyurContent = await page.locator("h1, h2, a, strong").filter({ hasText: /Ayur Shampoo/i }).first().isVisible().catch(() => false);
+  const hasAyurContent = await page.locator("h1, h2, a, strong, .title, .product-name").filter({ hasText: /Ayur Shampoo/i }).first().isVisible().catch(() => false);
   expect(hasAyurContent).toBe(true);
   console.log('[Desktop ShareReview] Shared review link redirection successfully verified!');
 

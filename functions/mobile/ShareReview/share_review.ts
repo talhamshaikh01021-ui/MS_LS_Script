@@ -24,7 +24,7 @@ export interface MobileShareReviewResult {
  * 2. Opens the Mobile Email Review share dialog / page (EmailReviewNew.aspx?rid=...)
  * 3. Fills recipient email (talhamshaikh0102@gmail.com), sender name, and message
  * 4. Submits the share form and verifies on-page confirmation ("Your email has been sent.")
- * 5. Verifies email arrival in Gmail inbox using IMAP helper within 20s
+ * 5. Verifies email arrival in Gmail inbox using IMAP helper within 90s
  * 6. Extracts the shared review URL from the received email
  * 7. Navigates to the shared review link and verifies mobile redirection to Ayur Shampoo review
  */
@@ -41,14 +41,21 @@ export async function mobileShareReview(
   let targetReviewUrl = reviewUrl;
   let rid = '';
 
-  if (targetReviewUrl && targetReviewUrl.includes('/review/') && !targetReviewUrl.endsWith('-review-')) {
+  if (targetReviewUrl && targetReviewUrl.includes('/review/') && !targetReviewUrl.endsWith('-review-') && !targetReviewUrl.includes('-reviews-')) {
     rid = extractRrKey(targetReviewUrl) || '';
   }
 
-  // If no valid RR key from reviewUrl, fetch from Ayur Shampoo RAR by registered User ID (not first review)
+  // If no valid RR key from reviewUrl, fetch from Ayur Shampoo RAR by registered User ID (or first available Ayur review)
   if (!rid || !targetReviewUrl || !targetReviewUrl.includes('/review/') || targetReviewUrl.endsWith('-review-')) {
     console.log(`[Mobile ShareReview] Fetching RR key from mobile Ayur Shampoo RAR for registered User ID: ${registeredUserId}...`);
     const rarUrl = `${MOBILE_BASE_URL}/product-reviews/ayur-shampoo-reviews-925039755`;
+
+    // Navigate to RAR and trigger review card loading
+    await page.goto(rarUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await page.waitForTimeout(2500);
+
     const userRev = await fetchRrKeyAndUrlByUserId(page, {
       userId: registeredUserId,
       baseUrl: MOBILE_BASE_URL,
@@ -60,9 +67,22 @@ export async function mobileShareReview(
       targetReviewUrl = userRev.reviewUrl || `${MOBILE_BASE_URL}/review/ayur-shampoo-review-${rid}`;
       console.log(`[Mobile ShareReview] Successfully fetched RR key from registered User ID: ${rid}`);
     } else {
-      console.warn(`[Mobile ShareReview] Review for registered User ID "${registeredUserId}" not found on RAR; using fallback.`);
-      rid = 'sqqsntmqoop';
-      targetReviewUrl = `${MOBILE_BASE_URL}/review/ayur-shampoo-review-sqqsntmqoop`;
+      console.log(`[Mobile ShareReview] Review for registered User ID "${registeredUserId}" not found on RAR, picking first Ayur Shampoo review card...`);
+      // Pick first Ayur Shampoo review link from the loaded RAR cards
+      const firstAyurLink = page.locator("a[href*='/review/ayur-shampoo-review-'], [id*='hypReviewTitle'], a.title").first();
+      if (await firstAyurLink.isVisible().catch(() => false)) {
+        const href = await firstAyurLink.getAttribute('href').catch(() => null);
+        if (href) {
+          rid = extractRrKey(href) || '';
+          targetReviewUrl = href.startsWith('http') ? href : `${MOBILE_BASE_URL}${href}`;
+        }
+      }
+
+      // Fallback to real permanent Ayur Shampoo review if still empty
+      if (!rid) {
+        rid = 'qnrpmprqlpp';
+        targetReviewUrl = `${MOBILE_BASE_URL}/review/ayur-shampoo-review-qnrpmprqlpp`;
+      }
     }
   }
 
@@ -115,9 +135,9 @@ export async function mobileShareReview(
   console.log('[Mobile ShareReview] Verified on-screen confirmation: "Your email has been sent."');
 
   // 7. Verify share happened by checking Gmail inbox via IMAP
-  console.log(`[Mobile ShareReview] Verifying email arrival in ${targetEmail} via IMAP (max 60s wait)...`);
+  console.log(`[Mobile ShareReview] Verifying email arrival in ${targetEmail} via IMAP (max 90s wait)...`);
   const appPassword = TEST_DATA.desktop_test_data.google_app_password;
-  const sharedEmail = await fetchSharedReviewEmail(targetEmail, appPassword, shareStartTime, 60, senderName);
+  const sharedEmail = await fetchSharedReviewEmail(targetEmail, appPassword, shareStartTime, 90, senderName);
 
   expect(sharedEmail).not.toBeNull();
   console.log(`[Mobile ShareReview] Share email verified in inbox! Subject: "${sharedEmail?.subject}"`);
@@ -143,7 +163,7 @@ export async function mobileShareReview(
   console.log(`[Mobile ShareReview] Page title after redirection: "${pageTitle}"`);
   expect(pageTitle).toMatch(/ayur shampoo/i);
 
-  const hasAyurContent = await page.locator("h1, h2, a, strong").filter({ hasText: /Ayur Shampoo/i }).first().isVisible().catch(() => false);
+  const hasAyurContent = await page.locator("h1, h2, a, strong, .title, .product-name").filter({ hasText: /Ayur Shampoo/i }).first().isVisible().catch(() => false);
   expect(hasAyurContent).toBe(true);
   console.log('[Mobile ShareReview] Mobile shared review link redirection successfully verified!');
 

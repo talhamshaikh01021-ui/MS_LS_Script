@@ -3,6 +3,7 @@ import { desktopShareReview } from '../functions/desktop/ShareReview/share_revie
 import { mobileShareReview } from '../functions/mobile/ShareReview/share_review.js';
 import { RegressionReporter } from '../utils/reporter.js';
 import { setupContestBannerPrevention } from '../utils/contest_banner.js';
+import { DESKTOP_BASE_URL, MOBILE_BASE_URL } from '../utils/config.js';
 
 test.describe('Ayur Shampoo Share Review Activity', () => {
   test.describe.configure({ mode: 'serial' });
@@ -17,7 +18,7 @@ test.describe('Ayur Shampoo Share Review Activity', () => {
     const start = Date.now();
     try {
       console.log('>>> [Desktop Share Review Test] Starting...');
-      const res = await desktopShareReview(page, 'https://beta.mouthshut.com/review/ayur-shampoo-review-sqqsntmqoop', 'talhamshaikh0102@gmail.com');
+      const res = await desktopShareReview(page, `${DESKTOP_BASE_URL}/review/ayur-shampoo-review-qnrpmprqlpp`, 'talhamshaikh0102@gmail.com');
       expect(res.success).toBe(true);
       expect(res.sharedUrl).toBeTruthy();
       expect(res.redirectedUrl).toMatch(/ayur-shampoo/i);
@@ -41,7 +42,7 @@ test.describe('Ayur Shampoo Share Review Activity', () => {
     const start = Date.now();
     try {
       console.log('>>> [Mobile Share Review Test] Starting...');
-      const res = await mobileShareReview(page, 'https://mbeta.mouthshut.com/review/ayur-shampoo-review-sqqsntmqoop', 'talhamshaikh0102@gmail.com');
+      const res = await mobileShareReview(page, `${MOBILE_BASE_URL}/review/ayur-shampoo-review-qnrpmprqlpp`, 'talhamshaikh0102@gmail.com');
       expect(res.success).toBe(true);
       expect(res.sharedUrl).toBeTruthy();
       expect(res.redirectedUrl).toMatch(/ayur-shampoo/i);
