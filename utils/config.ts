@@ -153,7 +153,7 @@ export const TEST_DATA: TestDataConfig = {
     ...(loadedData.review_data || {})
   },
   report_recipients: loadedData.report_recipients || [
-    "Live_Status@mouthshut.com"
+    "testing_group@mouthshut.com"
   ]
 };
 

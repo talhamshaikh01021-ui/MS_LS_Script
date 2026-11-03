@@ -78,7 +78,7 @@ jobs:
           MOBILE_PASSWORD: ${{ secrets.MOBILE_PASSWORD }}
           REPORT_SENDER_EMAIL: ${{ secrets.REPORT_SENDER_EMAIL || 'testing_group@mouthshut.com' }}
           REPORT_SENDER_PASSWORD: ${{ secrets.REPORT_SENDER_PASSWORD }}
-          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS || 'Live_Status@mouthshut.com' }}
+          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS || 'testing_group@mouthshut.com' }}
         run: |
           SUITE="${{ github.event.inputs.suite || 'all' }}"
           echo "Executing suite: $SUITE"
