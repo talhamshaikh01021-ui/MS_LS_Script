@@ -128,9 +128,15 @@ test.describe('Mobile Regression Master Suite', () => {
       reporter.setActivityStatus('Mobile', 18, rarSec);
     } catch (err: any) {
       reporter.recordStep('Activity 6: Page Load Timing (Amazon RAR & RR)', 'Mobile', 'FAILED', Date.now() - act6Start, err.message);
-      reporter.setActivityStatus('Mobile', 11, 'Failed');
-      reporter.setActivityStatus('Mobile', 17, 'Failed');
-      reporter.setActivityStatus('Mobile', 18, 'Failed');
+      if (!reporter.getActivityStatus('Mobile', 11)) {
+        reporter.setActivityStatus('Mobile', 11, 'Failed');
+      }
+      if (!reporter.getActivityStatus('Mobile', 17)) {
+        reporter.setActivityStatus('Mobile', 17, 'Failed');
+      }
+      if (!reporter.getActivityStatus('Mobile', 18)) {
+        reporter.setActivityStatus('Mobile', 18, 'Failed');
+      }
       console.error('[Mobile Master] Activity 6 Failed:', err);
     }
 

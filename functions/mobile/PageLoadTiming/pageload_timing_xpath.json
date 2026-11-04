@@ -4,5 +4,5 @@
   "amazonProductSuggestion": "ul.ui-autocomplete li a:has(.searchTitle:has-text('Amazon')):has(.searchParent:has-text('Online Shopping'))",
   "amazonListingProduct": "a.product-name:has-text('Amazon')",
   "amazonSearchResult": "//a[(contains(@href,'online-shopping') or contains(@href,'amazon')) and not(contains(@href,'mobile-phone')) and not(contains(.,'Mobile Phones'))]",
-  "reviewLinkOnRar": ".review-heading a.title, .useful-not-very a, a[href*='/review/amazon-review-']"
+  "reviewLinkOnRar": "a.title, [id*='hypReviewTitle'], .review-heading a.title, a[href*='/review/amazon-review-'], a[href*='/review/']:not([href*='writereview'])"
 }

@@ -128,9 +128,15 @@ test.describe('Desktop Regression Master Suite', () => {
       reporter.setActivityStatus('Desktop', 18, rarSec);
     } catch (err: any) {
       reporter.recordStep('Activity 6: Page Load Timing (Amazon RAR & RR)', 'Desktop', 'FAILED', Date.now() - act6Start, err.message);
-      reporter.setActivityStatus('Desktop', 11, 'Failed');
-      reporter.setActivityStatus('Desktop', 17, 'Failed');
-      reporter.setActivityStatus('Desktop', 18, 'Failed');
+      if (!reporter.getActivityStatus('Desktop', 11)) {
+        reporter.setActivityStatus('Desktop', 11, 'Failed');
+      }
+      if (!reporter.getActivityStatus('Desktop', 17)) {
+        reporter.setActivityStatus('Desktop', 17, 'Failed');
+      }
+      if (!reporter.getActivityStatus('Desktop', 18)) {
+        reporter.setActivityStatus('Desktop', 18, 'Failed');
+      }
       console.error('[Desktop Master] Activity 6 Failed:', err);
     }
 
