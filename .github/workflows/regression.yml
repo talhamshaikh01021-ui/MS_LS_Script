@@ -20,11 +20,11 @@ on:
       desktop_url:
         description: 'Desktop Base URL'
         required: false
-        default: 'https://beta.mouthshut.com'
+        default: 'https://mouthshut.com'
       mobile_url:
         description: 'Mobile Base URL'
         required: false
-        default: 'https://mbeta.mouthshut.com'
+        default: 'https://m.mouthshut.com'
   push:
     branches:
       - main
@@ -65,8 +65,8 @@ jobs:
       - name: Run Regression Suite
         env:
           CI: true
-          DESKTOP_BASE_URL: ${{ github.event.inputs.desktop_url || 'https://beta.mouthshut.com' }}
-          MOBILE_BASE_URL: ${{ github.event.inputs.mobile_url || 'https://mbeta.mouthshut.com' }}
+          DESKTOP_BASE_URL: ${{ github.event.inputs.desktop_url || 'https://mouthshut.com' }}
+          MOBILE_BASE_URL: ${{ github.event.inputs.mobile_url || 'https://m.mouthshut.com' }}
           TEST_DATA_JSON: ${{ secrets.TEST_DATA_JSON }}
           DESKTOP_EMAIL_ID: ${{ secrets.DESKTOP_EMAIL_ID }}
           DESKTOP_APP_PASSWORD: ${{ secrets.DESKTOP_APP_PASSWORD }}
