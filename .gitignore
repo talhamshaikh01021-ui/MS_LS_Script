@@ -10,3 +10,4 @@ scratch/
 eng.traineddata
 *.log
 .playwright-mcp/
+tests/corpRegistration.spec.js

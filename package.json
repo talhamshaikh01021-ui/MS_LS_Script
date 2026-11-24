@@ -25,13 +25,13 @@
   "packageManager": "pnpm@12.6.0",
   "type": "module",
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6"
   },
   "dependencies": {
     "imap-simple": "^5.1.0",
-    "mailparser": "^3.14.1",
-    "nodemailer": "^10.3.1",
+    "mailparser": "^3.15.0",
+    "nodemailer": "^10.6.1",
     "tesseract.js": "^7.0.0"
   }
 }
